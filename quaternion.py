@@ -1022,6 +1022,17 @@ def dict_to_quat_tensor(X_dict):
     return QuatTensor(data)
 
 
+def labels_to_quat_vector(y):
+    """将整数标签转换为 QuatVector (纯实四元数).
+
+    y: (n,) int array
+    Returns: QuatVector —— 每个元素为 Quaternion(label, 0, 0, 0)
+    """
+    data = np.zeros((len(y), 4))
+    data[:, 0] = np.asarray(y, dtype=float)
+    return QuatVector(data)
+
+
 _I    = Quaternion(0, 1, 0, 0)
 _J    = Quaternion(0, 0, 1, 0)
 _K    = Quaternion(0, 0, 0, 1)

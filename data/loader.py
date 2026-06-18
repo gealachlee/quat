@@ -160,9 +160,11 @@ def load_cifar10_samples(n_per_class=1000, k=2, random_state=42, return_quaterni
         X_train = _convert_to_quaternion_dict(X_train)
         X_test = _convert_to_quaternion_dict(X_test)
         if return_quaternion == 'tensor':
-            from quaternion import dict_to_quat_tensor
+            from quaternion import dict_to_quat_tensor, labels_to_quat_vector
             X_train = dict_to_quat_tensor(X_train)
             X_test = dict_to_quat_tensor(X_test)
+            y_train = labels_to_quat_vector(y_train)
+            y_test = labels_to_quat_vector(y_test)
         return X_train, y_train, X_test, y_test
 
     return X_train, y_train, X_test, y_test
@@ -231,9 +233,11 @@ def load_stl10_samples(n_per_class=1000, k=2, random_state=42, return_quaternion
         X_train = _convert_to_quaternion_dict(X_train)
         X_test = _convert_to_quaternion_dict(X_test)
         if return_quaternion == 'tensor':
-            from quaternion import dict_to_quat_tensor
+            from quaternion import dict_to_quat_tensor, labels_to_quat_vector
             X_train = dict_to_quat_tensor(X_train)
             X_test = dict_to_quat_tensor(X_test)
+            y_train = labels_to_quat_vector(y_train)
+            y_test = labels_to_quat_vector(y_test)
         return X_train, y_train, X_test, y_test
 
     return X_train, y_train, X_test, y_test
@@ -310,9 +314,11 @@ def load_flower17_samples(n_per_class=1000, k=2, random_state=42, return_quatern
         X_train = _convert_to_quaternion_dict(X_train)
         X_test = _convert_to_quaternion_dict(X_test)
         if return_quaternion == 'tensor':
-            from quaternion import dict_to_quat_tensor
+            from quaternion import dict_to_quat_tensor, labels_to_quat_vector
             X_train = dict_to_quat_tensor(X_train)
             X_test = dict_to_quat_tensor(X_test)
+            y_train = labels_to_quat_vector(y_train)
+            y_test = labels_to_quat_vector(y_test)
         return X_train, y_train, X_test, y_test
 
     return X_train, y_train, X_test, y_test
@@ -413,9 +419,11 @@ def load_svhn_samples(n_per_class=1000, k=2, random_state=42, return_quaternion=
         X_train = _convert_to_quaternion_dict(X_train)
         X_test = _convert_to_quaternion_dict(X_test)
         if return_quaternion == 'tensor':
-            from quaternion import dict_to_quat_tensor
+            from quaternion import dict_to_quat_tensor, labels_to_quat_vector
             X_train = dict_to_quat_tensor(X_train)
             X_test = dict_to_quat_tensor(X_test)
+            y_train = labels_to_quat_vector(y_train)
+            y_test = labels_to_quat_vector(y_test)
         return X_train, y_train, X_test, y_test
 
     return X_train, y_train, X_test, y_test
@@ -502,9 +510,11 @@ def load_imagenette_samples(n_per_class=1000, k=2, random_state=42, return_quate
         X_train = _convert_to_quaternion_dict(X_train)
         X_test = _convert_to_quaternion_dict(X_test)
         if return_quaternion == 'tensor':
-            from quaternion import dict_to_quat_tensor
+            from quaternion import dict_to_quat_tensor, labels_to_quat_vector
             X_train = dict_to_quat_tensor(X_train)
             X_test = dict_to_quat_tensor(X_test)
+            y_train = labels_to_quat_vector(y_train)
+            y_test = labels_to_quat_vector(y_test)
         return X_train, y_train, X_test, y_test
     
     return X_train, y_train, X_test, y_test
