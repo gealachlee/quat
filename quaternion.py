@@ -945,18 +945,29 @@ def quat(*args):
     return Quaternion(*args)
 
 
-def dict_to_quat_tensor(X_dict):
-    """将四元数字典转换为 QuatTensor.
+def dict_to_quat_matrix(X_dict):
+    """将四元数字典的单个样本转换为 QuatMatrix.
 
-    输入格式与 data.loader 中 _convert_to_quaternion_dict 一致:
-        X_dict: {'real': (n,h,w), 'i': (n,h,w), 'j': (n,h,w), 'k': (n,h,w)}
-
-    Returns:
-        QuatTensor of shape (n, h, w) with last dim = 4 (real, i, j, k)
+    X_dict: {'real': (H,W), 'i': (H,W), 'j': (H,W), 'k': (H,W)}
+    Returns: QuatMatrix of shape (H, W) —— 每个像素位置一个 Quaternion 元素
     """
     data = np.stack(
         [X_dict['real'], X_dict['i'], X_dict['j'], X_dict['k']],
-        axis=-1)
+        axis=-1)  # (H, W, 4)
+    return QuatMatrix(data)
+
+
+def dict_to_quat_tensor(X_dict):
+    """将四元数字典（batch）转换为 QuatTensor.
+
+    等价于: 逐样本 dict_to_quat_matrix → QuatTensor stack
+
+    X_dict: {'real': (n,H,W), 'i': (n,H,W), 'j': (n,H,W), 'k': (n,H,W)}
+    Returns: QuatTensor of shape (n, H, W) —— mode1=样本, mode2=H, mode3=W
+    """
+    data = np.stack(
+        [X_dict['real'], X_dict['i'], X_dict['j'], X_dict['k']],
+        axis=-1)  # (n, H, W, 4)
     return QuatTensor(data)
 
 
