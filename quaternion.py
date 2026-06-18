@@ -415,6 +415,23 @@ class QuatVector:
     def to_array(self):
         return self._data.copy()
 
+    # -- component arrays (n,) ------------------------------------------------
+    @property
+    def real(self):
+        return self._data[:, 0].copy()
+
+    @property
+    def i(self):
+        return self._data[:, 1].copy()
+
+    @property
+    def j(self):
+        return self._data[:, 2].copy()
+
+    @property
+    def k(self):
+        return self._data[:, 3].copy()
+
     def quaternions(self):
         return [Quaternion(row) for row in self._data]
 
@@ -603,6 +620,23 @@ class QuatMatrix:
 
     def to_array(self):
         return self._data.copy()
+
+    # -- component arrays (m, n) ---------------------------------------------
+    @property
+    def real(self):
+        return self._data[..., 0].copy()
+
+    @property
+    def i(self):
+        return self._data[..., 1].copy()
+
+    @property
+    def j(self):
+        return self._data[..., 2].copy()
+
+    @property
+    def k(self):
+        return self._data[..., 3].copy()
 
     # -- display -------------------------------------------------------------
     def __repr__(self):
@@ -817,6 +851,23 @@ class QuatTensor:
 
     def to_array(self):
         return self._data.copy()
+
+    # -- component tensors (n, H, W) -----------------------------------------
+    @property
+    def real(self):
+        return self._data[..., 0].copy()
+
+    @property
+    def i(self):
+        return self._data[..., 1].copy()
+
+    @property
+    def j(self):
+        return self._data[..., 2].copy()
+
+    @property
+    def k(self):
+        return self._data[..., 3].copy()
 
     def __repr__(self):
         return f"QuatTensor({self._p}x{self._q}x{self._r})"
