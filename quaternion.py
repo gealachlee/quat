@@ -1022,14 +1022,19 @@ def dict_to_quat_tensor(X_dict):
     return QuatTensor(data)
 
 
-def labels_to_quat_vector(y):
+def labels_to_quat_vector(y, binary=False):
     """将整数标签转换为 QuatVector (纯实四元数).
 
     y: (n,) int array
-    Returns: QuatVector —— 每个元素为 Quaternion(label, 0, 0, 0)
+    binary: True 启用二分类映射 0→-1, 1→+1
+
+    Returns: QuatVector
     """
     data = np.zeros((len(y), 4))
-    data[:, 0] = np.asarray(y, dtype=float)
+    vals = np.asarray(y, dtype=float)
+    if binary:
+        vals = np.where(vals == 0, -1., 1.)
+    data[:, 0] = vals
     return QuatVector(data)
 
 
