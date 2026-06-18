@@ -11,6 +11,14 @@ _CONJ  = np.array([1., -1., -1., -1.])
 _REAL  = np.array([1.,  0.,  0.,  0.])
 _ZERO4 = np.array([0.,  0.,  0.,  0.])
 
+# Weight tensor for real-matrix construction: W[r,c,k] gives coefficient
+# of quaternion component k at block position (r,c) in the 4x4 real matrix.
+_RW = np.zeros((4, 4, 4))
+_RW[0, 0, 0] = 1;   _RW[0, 1, 1] = -1;  _RW[0, 2, 2] = -1;  _RW[0, 3, 3] = -1
+_RW[1, 0, 1] = 1;   _RW[1, 1, 0] = 1;   _RW[1, 2, 3] = -1;  _RW[1, 3, 2] = 1
+_RW[2, 0, 2] = 1;   _RW[2, 1, 3] = 1;   _RW[2, 2, 0] = 1;   _RW[2, 3, 1] = -1
+_RW[3, 0, 3] = 1;   _RW[3, 1, 2] = -1;  _RW[3, 2, 1] = 1;   _RW[3, 3, 0] = 1
+
 
 def _hamilton(p, q):
     """Vectorized Hamilton product. p, q: broadcastable arrays, last dim == 4."""
@@ -700,12 +708,8 @@ class QuatMatrix:
         return cls(result)
 
     def to_real_matrix(self):
-        M = np.zeros((4*self._m, 4*self._n))
-        for i in range(self._m):
-            for j in range(self._n):
-                M[4*i:4*i+4, 4*j:4*j+4] = \
-                    Quaternion(self._data[i, j]).to_real_matrix()
-        return M
+        return np.einsum('rck,mnk->mrnc', _RW, self._data, optimize=True).reshape(
+            4 * self._m, 4 * self._n)
 
     @classmethod
     def from_real_matrix(cls, M):
@@ -713,11 +717,11 @@ class QuatMatrix:
         if M.ndim != 2 or M.shape[0] % 4 or M.shape[1] % 4:
             raise ValueError(f"Expected (4m,4n), got {M.shape}")
         m, n = M.shape[0] // 4, M.shape[1] // 4
-        result = np.zeros((m, n, 4))
-        for i in range(m):
-            for j in range(n):
-                block = M[4*i:4*i+4, 4*j:4*j+4]
-                result[i, j] = Quaternion.from_real_matrix(block)._data
+        result = np.empty((m, n, 4))
+        result[:, :, 0] = M[0::4, 0::4]
+        result[:, :, 1] = M[1::4, 0::4]
+        result[:, :, 2] = M[2::4, 0::4]
+        result[:, :, 3] = M[3::4, 0::4]
         return cls(result)
 
 
@@ -939,6 +943,21 @@ class QuatTensor:
 # ---------------------------------------------------------------------------
 def quat(*args):
     return Quaternion(*args)
+
+
+def dict_to_quat_tensor(X_dict):
+    """将四元数字典转换为 QuatTensor.
+
+    输入格式与 data.loader 中 _convert_to_quaternion_dict 一致:
+        X_dict: {'real': (n,h,w), 'i': (n,h,w), 'j': (n,h,w), 'k': (n,h,w)}
+
+    Returns:
+        QuatTensor of shape (n, h, w) with last dim = 4 (real, i, j, k)
+    """
+    data = np.stack(
+        [X_dict['real'], X_dict['i'], X_dict['j'], X_dict['k']],
+        axis=-1)
+    return QuatTensor(data)
 
 
 _I    = Quaternion(0, 1, 0, 0)
