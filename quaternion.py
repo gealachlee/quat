@@ -488,6 +488,25 @@ class QuatVector:
             M[2*i:2*i+2, :] = Quaternion(self._data[i]).to_complex_matrix()
         return M
 
+    def to_real_matrix(self):
+        n = len(self)
+        M = np.zeros((4*n, 4))
+        for i in range(n):
+            M[4*i:4*i+4, :] = Quaternion(self._data[i]).to_real_matrix()
+        return M
+
+    @classmethod
+    def from_real_matrix(cls, M):
+        M = np.asarray(M)
+        if M.ndim != 2 or M.shape[0] % 4 or M.shape[1] != 4:
+            raise ValueError(f"Expected (4n,4), got {M.shape}")
+        n = M.shape[0] // 4
+        data = np.empty((n, 4))
+        for i in range(n):
+            block = M[4*i:4*i+4, :]
+            data[i] = Quaternion.from_real_matrix(block)._data
+        return cls(data)
+
 
 # ---------------------------------------------------------------------------
 class QuatMatrix:
