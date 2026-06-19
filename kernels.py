@@ -36,10 +36,42 @@ def _qexp(Q):
 
 
 # ---------------------------------------------------------------------------
-# Kernel matrix: Q-cubic
+# Internal helpers
 # ---------------------------------------------------------------------------
-def cubic_kernel_matrix(X, chunk_size=None):
-    r"""Compute the Q-cubic kernel matrix.
+def _flatten_data(X):
+    if isinstance(X, QuatTensor):
+        data = X._data.reshape(X.shape[0], -1, 4)
+    elif isinstance(X, QuatMatrix):
+        data = X._data.reshape(X._m, -1, 4)
+    else:
+        data = np.asarray(X, dtype=float)
+        data = data.reshape(data.shape[0], -1, 4)
+    return data, data.shape[0], data.shape[1]
+
+
+def _cubic_inner(data):
+    """Frobenius norms and inner product from flattened (N,M,4) data."""
+    N = data.shape[0]
+    norms_sq = (data * data).sum(axis=(1, 2))
+    conj_data = data * _CONJ
+    inner = _hamilton(
+        data[:, None, :, :], conj_data[None, :, :, :]
+    ).sum(axis=2)
+    return norms_sq, inner
+
+
+def _cubic_assemble(norms_row, inner, norms_col):
+    """K_ij = (1+|row_i|^2)(1+inner_ij)(1+|col_j|^2)."""
+    one_plus = inner.copy()
+    one_plus[..., 0] += 1.
+    return (1. + norms_row[:, None, None]) * one_plus * (1. + norms_col[None, :, None])
+
+
+# ---------------------------------------------------------------------------
+# Kernel matrix: Q-cubic (K_train)
+# ---------------------------------------------------------------------------
+def cubic_kernel_matrix(X):
+    r"""Compute the Q-cubic kernel matrix K_train.
 
     Formula (paper Eq. on line 358):
         K_{ij} = (1 + |X_i|_F^2) * (1 + <X_i, X_j>) * (1 + |X_j|_F^2)
@@ -54,39 +86,37 @@ def cubic_kernel_matrix(X, chunk_size=None):
     Returns:
         K: (N, N, 4)  quaternion kernel matrix
     """
-    # Flatten spatial dims: (N, M, 4)  where M = m * l
-    if isinstance(X, QuatTensor):
-        data = X._data.reshape(X.shape[0], -1, 4)
-    elif isinstance(X, QuatMatrix):
-        data = X._data.reshape(X._m, -1, 4)
-    else:
-        data = np.asarray(X, dtype=float)
-        data = data.reshape(data.shape[0], -1, 4)
+    data, N, M = _flatten_data(X)
+    norms_sq, inner = _cubic_inner(data)
+    return _cubic_assemble(norms_sq, inner, norms_sq)
 
-    N, M, _ = data.shape
 
-    # --- Frobenius norms squared (real scalars) ---
-    # |q|_F^2 = sum_{p,q} |q_{pq}|^2 = sum_{p,q} (q1^2+q2^2+q3^2+q4^2)
-    norms_sq = (data * data).sum(axis=(1, 2))  # (N,)
+def cubic_kernel_cross(X_test, X_train):
+    r"""Compute cross kernel matrix K_test = κ(X_test, X_train).
 
-    # --- Frobenius inner product matrix (quaternions) ---
-    # conj_data[i,p] = conj(X_i)_p
-    conj_data = data * _CONJ  # (N, M, 4)
+    K_test[a, i] = (1 + |X_test_a|^2)(1 + <X_test_a, X_train_i>)(1 + |X_train_i|^2)
 
-    # <X_i, X_j> = sum_p  X_i_p * conj(X_j)_p   (Hamilton product per pixel)
-    # broadcast: (N, 1, M, 4) vs (1, N, M, 4) -> (N, N, M, 4), sum over M
-    inner = _hamilton(
-        data[:, None, :, :],       # (N, 1, M, 4)
-        conj_data[None, :, :, :],  # (1, N, M, 4)
-    ).sum(axis=2)  # (N, N, 4)  -- quaternion-valued
+    Args:
+        X_test:  QuatTensor (N_test, m, l)
+        X_train: QuatTensor (N_train, m, l)
 
-    # --- Cubic kernel ---
-    # K_ij = (1 + |X_i|^2) * (1 + <X_i,X_j>) * (1 + |X_j|^2)
-    one_plus_inner = inner.copy()
-    one_plus_inner[..., 0] += 1.  # add 1 to real part
+    Returns:
+        K_test: (N_test, N_train, 4)
+    """
+    data_test,  Nt, M = _flatten_data(X_test)
+    data_train, Ntr, _ = _flatten_data(X_train)
+    assert M == _, "Spatial dimensions must match"
 
-    K = (1. + norms_sq[:, None, None]) * one_plus_inner * (1. + norms_sq[None, :, None])
-    return K  # (N, N, 4)
+    norms_sq_test  = (data_test  * data_test).sum(axis=(1, 2))    # (N_test,)
+    norms_sq_train = (data_train * data_train).sum(axis=(1, 2))   # (N_train,)
+
+    conj_train = data_train * _CONJ
+    inner_cross = _hamilton(
+        data_test[:, None, :, :],       # (N_test, 1, M, 4)
+        conj_train[None, :, :, :],      # (1, N_train, M, 4)
+    ).sum(axis=2)                       # (N_test, N_train, 4)
+
+    return _cubic_assemble(norms_sq_test, inner_cross, norms_sq_train)
 
 
 # ---------------------------------------------------------------------------
@@ -111,18 +141,10 @@ def gaussian_kernel_matrix(X, gamma=1., chunk_size=200):
     Returns:
         K: (N, N, 4)  quaternion kernel matrix
     """
-    if isinstance(X, QuatTensor):
-        data = X._data.reshape(X.shape[0], -1, 4)
-    elif isinstance(X, QuatMatrix):
-        data = X._data.reshape(X._m, -1, 4)
-    else:
-        data = np.asarray(X, dtype=float)
-        data = data.reshape(data.shape[0], -1, 4)
-
-    N, M, _ = data.shape
+    data, N, M = _flatten_data(X)
     K = np.empty((N, N, 4))
 
-    conj_data = data * _CONJ  # (N, M, 4)
+    conj_data = data * _CONJ
 
     if chunk_size and chunk_size > 0:
         chunk_size = min(chunk_size, N)
@@ -131,26 +153,81 @@ def gaussian_kernel_matrix(X, gamma=1., chunk_size=200):
             for j_start in range(0, N, chunk_size):
                 j_end = min(j_start + chunk_size, N)
 
-                Di = data[i_start:i_end, None, :, :]      # (chunk_i, 1, M, 4)
-                Cj = conj_data[None, j_start:j_end, :, :]  # (1, chunk_j, M, 4)
-
-                # C = X_i - conj(X_j)  element-wise
-                diff = Di - Cj  # (chunk_i, chunk_j, M, 4)
-
-                # C^2  element-wise quaternion square
-                diff_sq = _hamilton(diff, diff)  # (chunk_i, chunk_j, M, 4)
-
-                # tr(C^T C) = sum_{p,q} C_{pq}^2
-                trace_sq = diff_sq.sum(axis=2)  # (chunk_i, chunk_j, 4)
-
-                # exp(-gamma * trace)
+                Di = data[i_start:i_end, None, :, :]
+                Cj = conj_data[None, j_start:j_end, :, :]
+                diff = Di - Cj
+                diff_sq = _hamilton(diff, diff)
+                trace_sq = diff_sq.sum(axis=2)
                 K[i_start:i_end, j_start:j_end] = _qexp(-gamma * trace_sq)
     else:
-        diff = data[:, None, :, :] - conj_data[None, :, :, :]  # (N,N,M,4)
-        diff_sq = _hamilton(diff, diff).sum(axis=2)            # (N,N,4)
+        diff = data[:, None, :, :] - conj_data[None, :, :, :]
+        diff_sq = _hamilton(diff, diff).sum(axis=2)
         K = _qexp(-gamma * diff_sq)
 
     return K
+
+
+def gaussian_kernel_cross(X_test, X_train, gamma=1., chunk_size=200):
+    r"""Compute cross Q-Gaussian kernel K_test = κ(X_test, X_train).
+
+    K_test[a, i] = exp( -γ·tr((X_test_a - conj(X_train_i))^T(...)) )
+
+    Args:
+        X_test:  QuatTensor (N_test, m, l)
+        X_train: QuatTensor (N_train, m, l)
+        gamma: bandwidth
+        chunk_size: batch size for memory control
+
+    Returns:
+        K_test: (N_test, N_train, 4)
+    """
+    data_test,  Nt, M = _flatten_data(X_test)
+    data_train, Ntr, _ = _flatten_data(X_train)
+    assert M == _, "Spatial dimensions must match"
+
+    K = np.empty((Nt, Ntr, 4))
+    conj_train = data_train * _CONJ
+
+    if chunk_size and chunk_size > 0:
+        chunk_size = min(chunk_size, max(Nt, Ntr))
+        for i_start in range(0, Nt, chunk_size):
+            i_end = min(i_start + chunk_size, Nt)
+            for j_start in range(0, Ntr, chunk_size):
+                j_end = min(j_start + chunk_size, Ntr)
+
+                Di = data_test[i_start:i_end, None, :, :]
+                Cj = conj_train[None, j_start:j_end, :, :]
+                diff = Di - Cj
+                diff_sq = _hamilton(diff, diff)
+                trace_sq = diff_sq.sum(axis=2)
+                K[i_start:i_end, j_start:j_end] = _qexp(-gamma * trace_sq)
+    else:
+        diff = data_test[:, None, :, :] - conj_train[None, :, :, :]
+        K = _qexp(-gamma * _hamilton(diff, diff).sum(axis=2))
+
+    return K
+
+
+# ---------------------------------------------------------------------------
+# Per-channel max-normalization
+# ---------------------------------------------------------------------------
+def normalize_kernel(K):
+    r"""Normalize quaternion kernel matrix by each channel's max absolute value.
+
+    K_norm[c] = K[c] / max(|K[c]|)  for c = 0,1,2,3  (real,i,j,k)
+
+    Preserves the quaternion structure while preventing overflow.
+    
+    Args:
+        K: (..., 4) quaternion kernel values
+
+    Returns:
+        K_norm: same shape, each channel scaled to [-1, 1]
+    """
+    K = np.asarray(K, dtype=float)
+    max_abs = np.abs(K).max(axis=tuple(range(K.ndim - 1)), keepdims=True)  # (1,...,1,4)
+    max_abs[max_abs == 0.] = 1.
+    return K / max_abs
 
 
 # ---------------------------------------------------------------------------
@@ -161,21 +238,47 @@ _KERNEL_MAP = {
     'gaussian': gaussian_kernel_matrix,
 }
 
+_CROSS_KERNEL_MAP = {
+    'cubic':    cubic_kernel_cross,
+    'gaussian': gaussian_kernel_cross,
+}
+
 
 def compute_kernel_matrix(X, kernel_type='cubic', **kwargs):
-    """Compute quaternion kernel matrix.
+    """Compute quaternion kernel matrix K_train = κ(X, X).
 
     Args:
         X: QuatTensor (N, m, l)
         kernel_type: 'cubic' | 'gaussian'
         **kwargs: forwarded to kernel function (e.g. gamma for gaussian)
+
+    Returns:
+        K: (N, N, 4)
     """
-    fn = _KERNEL_MAP.get(kernel_type)
+    return _select_kernel(_KERNEL_MAP, kernel_type, X, **kwargs)
+
+
+def compute_kernel_cross(X_test, X_train, kernel_type='cubic', **kwargs):
+    """Compute cross kernel matrix K_test = κ(X_test, X_train).
+
+    Args:
+        X_test:  QuatTensor (N_test, m, l)
+        X_train: QuatTensor (N_train, m, l)
+        kernel_type: 'cubic' | 'gaussian'
+        **kwargs: forwarded to kernel function (e.g. gamma for gaussian)
+
+    Returns:
+        K_test: (N_test, N_train, 4)
+    """
+    return _select_kernel(_CROSS_KERNEL_MAP, kernel_type, X_test, X_train, **kwargs)
+
+
+def _select_kernel(catalog, kernel_type, *args, **kwargs):
+    import inspect
+    fn = catalog.get(kernel_type)
     if fn is None:
         raise ValueError(f"Unknown kernel type: {kernel_type}. "
-                         f"Available: {list(_KERNEL_MAP.keys())}")
-    # Filter kwargs to only what the function accepts
-    import inspect
+                         f"Available: {list(catalog.keys())}")
     sig = inspect.signature(fn)
     filtered = {k: v for k, v in kwargs.items() if k in sig.parameters}
-    return fn(X, **filtered)
+    return fn(*args, **filtered)
