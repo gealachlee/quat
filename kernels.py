@@ -212,21 +212,23 @@ def gaussian_kernel_cross(X_test, X_train, gamma=1., chunk_size=200):
 # Per-channel max-normalization
 # ---------------------------------------------------------------------------
 def normalize_kernel(K):
-    r"""Normalize quaternion kernel matrix by each channel's max absolute value.
+    r"""Normalize quaternion kernel by global max absolute value.
 
-    K_norm[c] = K[c] / max(|K[c]|)  for c = 0,1,2,3  (real,i,j,k)
+    K_norm = K / max(|K|)
 
-    Preserves the quaternion structure while preventing overflow.
-    
+    Uses a SINGLE scalar divisor to preserve the quaternion PSD structure.
+    Per-channel normalization would break spectral properties of K_R.
+
     Args:
         K: (..., 4) quaternion kernel values
 
     Returns:
-        K_norm: same shape, each channel scaled to [-1, 1]
+        K_norm: same shape, scaled to roughly [-1, 1]
     """
     K = np.asarray(K, dtype=float)
-    max_abs = np.abs(K).max(axis=tuple(range(K.ndim - 1)), keepdims=True)  # (1,...,1,4)
-    max_abs[max_abs == 0.] = 1.
+    max_abs = np.abs(K).max()
+    if max_abs == 0.:
+        max_abs = 1.
     return K / max_abs
 
 
