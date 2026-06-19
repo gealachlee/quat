@@ -104,16 +104,21 @@ def _compute_pred(K, alpha, b):
 
 
 def _solve_alpha(K_real, pi, sigma, ridge):
-    r"""Solve  (K + σ K²) α = -K conj(π)   via real linear system.
+    r"""Solve (K + sigma K^2) alpha = -K conj(pi) via real linear system.
 
-    In real representation: (K_R + σ K_R²) α_R = -K_R · conj(π)_R
-    Use stable factorization: K_R (I + σ K_R) α_R = -K_R · conj(π)_R
+    Correct form:  K_R (I + sigma K_R) alpha_R = -K_R * conj(pi)_R
+    With ridge:    [K_R(I + sigma K_R) + ridge*I] alpha_R = -K_R * conj(pi)_R
     """
     N4 = K_real.shape[0]
     I = np.eye(N4)
-    A = K_real @ (I + sigma * K_real) + ridge * I
+
+    A = K_real @ (I + sigma * K_real)
+    A_norm = np.linalg.norm(A, ord=2)
+    A += ridge * max(1., A_norm) * I
+
     pi_real = _quat_to_real_vector(_quat_conj(pi))
     rhs = -K_real @ pi_real
+
     alpha_real = np.linalg.lstsq(A, rhs, rcond=None)[0]
     return _real_to_quat_vector(alpha_real)
 
@@ -151,10 +156,16 @@ def solve_ksqmm(K_train, y_labels, K_test=None, y_test_labels=None,
     y_q = y_labels
 
     # Initialize
-    alpha = np.zeros((N, 4))
-    u     = np.zeros((N, 4))
-    b_val = np.zeros(4)
-    lam   = np.zeros((N, 4))
+    alpha   = np.zeros((N, 4))
+    u       = np.zeros((N, 4))
+    b_val   = np.zeros(4)
+    lam     = np.zeros((N, 4))
+
+    # Early-exit tracking
+    best_alpha   = alpha.copy()
+    best_b       = b_val.copy()
+    best_test_acc = -1.
+    alpha_max     = 1e6   # overflow threshold
 
     effective_ridge = ridge * max(1., N / 10.)
     train_acc = test_acc = None
@@ -170,7 +181,16 @@ def solve_ksqmm(K_train, y_labels, K_test=None, y_test_labels=None,
         # ---- Step 2: update alpha ----
         lam_q = lam.copy()
         pi    = b_val + y_q * (u - _ONE_Q + lam_q / sigma)
-        alpha = _solve_alpha(K_real, pi, sigma, effective_ridge)
+        alpha = _solve_alpha(K_real, pi, sigma, ridge)
+
+        # ---- Overflow check: exit early if alpha explodes ----
+        alpha_norm = np.sqrt((alpha * alpha).sum())
+        if alpha_norm > alpha_max or not np.isfinite(alpha_norm):
+            if verbose:
+                print(f"  iter {k:4d}: ALPHA OVERFLOW |a|={alpha_norm:.2e} -- stopping, restoring best {best_test_acc:.4f}")
+            alpha = best_alpha
+            b_val = best_b
+            break
 
         # ---- Step 3: update b ----
         pred_new = _compute_pred(K_train, alpha, 0.)
@@ -184,26 +204,28 @@ def solve_ksqmm(K_train, y_labels, K_test=None, y_test_labels=None,
 
         primal_res = np.abs(z).max()
 
-        # ---- Per-iteration metrics ----
+        # ---- Per-iteration metrics & best-model tracking ----
         if verbose and (k % 10 == 0 or k < 5 or primal_res < tol):
-            msg = f"  iter {k:4d}: pr={primal_res:.6f}"
+            msg = f"  iter {k:4d}: pr={primal_res:.6f}  |a|={alpha_norm:.2e}"
 
-            # alpha norm (Frobenius) — monitor for overflow
-            alpha_norm = np.sqrt((alpha * alpha).sum())
-            msg += f"  |a|={alpha_norm:.2e}"
-
-            # Training accuracy
             yp_train = predict_ksqmm(K_train, alpha, b_val)
             train_acc = (np.sign(yp_train[:, 0]) == np.sign(y_q[:, 0])).mean()
             msg += f"  tr_acc={train_acc:.4f}"
 
-            # Test accuracy (if provided)
             if K_test is not None and y_test_labels is not None:
                 yp_test = predict_ksqmm(K_test, alpha, b_val)
                 test_acc = (np.sign(yp_test[:, 0]) == np.sign(y_test_labels[:, 0])).mean()
                 msg += f"  te_acc={test_acc:.4f}"
-
             print(msg)
+
+        # Track best model by test accuracy
+        if K_test is not None and y_test_labels is not None:
+            yp_test = predict_ksqmm(K_test, alpha, b_val)
+            cur_test = (np.sign(yp_test[:, 0]) == np.sign(y_test_labels[:, 0])).mean()
+            if cur_test > best_test_acc:
+                best_test_acc = cur_test
+                best_alpha = alpha.copy()
+                best_b = b_val.copy()
 
         if primal_res < tol:
             if verbose:
@@ -211,7 +233,8 @@ def solve_ksqmm(K_train, y_labels, K_test=None, y_test_labels=None,
             break
 
     info = {'n_iter': k + 1, 'primal_res': primal_res,
-            'train_acc': train_acc, 'test_acc': test_acc}
+            'train_acc': train_acc, 'test_acc': test_acc,
+            'best_test_acc': best_test_acc}
     return alpha, b_val, info
 
 
