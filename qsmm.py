@@ -121,91 +121,94 @@ def _solve_alpha(K_real, pi, sigma, ridge):
 # ---------------------------------------------------------------------------
 # Main ADMM solver
 # ---------------------------------------------------------------------------
-def solve_ksqmm(K_train, y_labels, K_test=None,
+def solve_ksqmm(K_train, y_labels, K_test=None, y_test_labels=None,
                 C=1., sigma=0.1, mu=0.1, ridge=1e-6,
                 max_iter=1000, tol=1e-4, verbose=False):
     r"""Solve KSQMM with ramp loss via Q-ADMM (Algorithm 1).
 
     Args:
-        K_train:   (N, N, 4)  quaternion kernel matrix
-        y_labels:  (N, 4)     quaternion labels (per sample)
-        K_test:    (N_test, N, 4)  optional cross kernel for evaluation
-        C:         regularization parameter
-        sigma:     ADMM penalty
-        mu:        dual step-size
-        ridge:     regularization for linear system
-        max_iter:  maximum ADMM iterations
-        tol:       convergence tolerance (primal residual)
-        verbose:   print progress
+        K_train:       (N, N, 4)  quaternion kernel matrix
+        y_labels:      (N, 4)     quaternion labels (per sample)
+        K_test:        (N_test, N, 4)  optional cross kernel for eval accuracy
+        y_test_labels: (N_test, 4)     quaternion test labels
+        C:             regularization parameter
+        sigma:         ADMM penalty
+        mu:            dual step-size
+        ridge:         regularization for linear system
+        max_iter:      maximum ADMM iterations
+        tol:           convergence tolerance (primal residual)
+        verbose:       print per-iteration progress with accuracies
 
     Returns:
         alpha: (N, 4)    learned coefficients
         b:     (4,)      learned bias
-        info:  dict with residuals, n_iter
+        info:  dict with residuals, n_iter, train_acc, test_acc
     """
     N = K_train.shape[0]
-    C_i = np.array([C, C, C, C])  # per-component C (can be extended)
+    C_i = np.array([C, C, C, C])
 
-    # Precompute real representation of K
-    K_real = _kernel_real_matrix(K_train)  # 4N × 4N
+    K_real = _kernel_real_matrix(K_train)
+    y_q = y_labels
 
     # Initialize
     alpha = np.zeros((N, 4))
     u     = np.zeros((N, 4))
-    b     = np.zeros(4)
-    lam   = np.zeros((N, 4))  # λ: (N, 4) real Lagrange multipliers
+    b_val = np.zeros(4)
+    lam   = np.zeros((N, 4))
 
-    y_q = y_labels  # (N, 4)
-
-    # Use ridge proportional to N for stability
     effective_ridge = ridge * max(1., N / 10.)
+    train_acc = test_acc = None
 
     for k in range(max_iter):
         # ---- Step 1: update u ----
-        # τ_{ni} = proj_i(1_q - y_n ∘ (α^* K_n + b))
-        pred = _compute_pred(K_train, alpha, b)  # (N, 4)
-        tau = _ONE_Q - y_q * pred  # Hadamard ∘ = element-wise (N,4)
-
-        # η_{ni} = τ_{ni} - λ_{ni} / σ
-        eta = tau - lam / sigma  # (N, 4)
-
-        # u_{ni} = prox_{C_i/σ · l_r}(η_{ni})
-        beta = C_i / sigma  # (4,)
-        u = _prox_ramp(eta, beta)
+        pred = _compute_pred(K_train, alpha, b_val)
+        tau  = _ONE_Q - y_q * pred
+        eta  = tau - lam / sigma
+        beta = C_i / sigma
+        u    = _prox_ramp(eta, beta)
 
         # ---- Step 2: update alpha ----
-        # λ^n_q = reconstitute quaternion from λ
-        lam_q = lam.copy()  # already (N, 4) quaternion form with real λ values
-
-        # π_n = b + y_n ∘ (u_n - 1_q + λ^n_q / σ)
-        pi = b + y_q * (u - _ONE_Q + lam_q / sigma)  # Hadamard ∘
-
+        lam_q = lam.copy()
+        pi    = b_val + y_q * (u - _ONE_Q + lam_q / sigma)
         alpha = _solve_alpha(K_real, pi, sigma, effective_ridge)
 
         # ---- Step 3: update b ----
-        # ξ_n = α^* K_n + y_n ∘ (u_n - 1_q + λ^n_q / σ)
-        pred_new = _compute_pred(K_train, alpha, 0.)  # (N, 4) without b
-        xi = pred_new + y_q * (u - _ONE_Q + lam_q / sigma)  # Hadamard ∘
+        pred_new = _compute_pred(K_train, alpha, 0.)
+        xi       = pred_new + y_q * (u - _ONE_Q + lam_q / sigma)
+        b_val    = -xi.mean(axis=0)
 
-        b = -xi.mean(axis=0)  # (4,)
+        # ---- Step 4: update lambda ----
+        pred_full = _compute_pred(K_train, alpha, b_val)
+        z         = u - (_ONE_Q - y_q * pred_full)
+        lam       = lam + mu * sigma * z
 
-        # ---- Step 4: update λ ----
-        # z_n = u_n - (1_q - y_n ∘ (α^* K_n + b))
-        pred_full = _compute_pred(K_train, alpha, b)  # (N, 4)
-        z = u - (_ONE_Q - y_q * pred_full)  # Hadamard ∘
-        lam = lam + mu * sigma * z  # (N, 4)
-
-        # ---- Check convergence ----
         primal_res = np.abs(z).max()
-        if verbose and (k % 100 == 0 or k < 5):
-            print(f"  iter {k:4d}: primal_res={primal_res:.6f}")
+
+        # ---- Per-iteration metrics ----
+        if verbose and (k % 10 == 0 or k < 5 or primal_res < tol):
+            msg = f"  iter {k:4d}: pr={primal_res:.6f}"
+
+            # Training accuracy
+            yp_train = predict_ksqmm(K_train, alpha, b_val)
+            train_acc = (np.sign(yp_train[:, 0]) == np.sign(y_q[:, 0])).mean()
+            msg += f"  tr_acc={train_acc:.4f}"
+
+            # Test accuracy (if provided)
+            if K_test is not None and y_test_labels is not None:
+                yp_test = predict_ksqmm(K_test, alpha, b_val)
+                test_acc = (np.sign(yp_test[:, 0]) == np.sign(y_test_labels[:, 0])).mean()
+                msg += f"  te_acc={test_acc:.4f}"
+
+            print(msg)
+
         if primal_res < tol:
             if verbose:
                 print(f"  Converged at iter {k}")
             break
 
-    info = {'n_iter': k + 1, 'primal_res': primal_res}
-    return alpha, b, info
+    info = {'n_iter': k + 1, 'primal_res': primal_res,
+            'train_acc': train_acc, 'test_acc': test_acc}
+    return alpha, b_val, info
 
 
 # ---------------------------------------------------------------------------
