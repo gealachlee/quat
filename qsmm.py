@@ -188,6 +188,10 @@ def solve_ksqmm(K_train, y_labels, K_test=None, y_test_labels=None,
         if verbose and (k % 10 == 0 or k < 5 or primal_res < tol):
             msg = f"  iter {k:4d}: pr={primal_res:.6f}"
 
+            # alpha norm (Frobenius) — monitor for overflow
+            alpha_norm = np.sqrt((alpha * alpha).sum())
+            msg += f"  |a|={alpha_norm:.2e}"
+
             # Training accuracy
             yp_train = predict_ksqmm(K_train, alpha, b_val)
             train_acc = (np.sign(yp_train[:, 0]) == np.sign(y_q[:, 0])).mean()
