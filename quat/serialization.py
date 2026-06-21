@@ -1,4 +1,5 @@
 """Serialization and interop: JSON, binary bytes, scipy Rotation, numpy views."""
+from __future__ import annotations
 import json
 import struct
 import numpy as np
@@ -7,25 +8,44 @@ from quat.collections import QuatVector, QuatMatrix, QuatTensor
 from quat.utils import to_ndarray, from_ndarray
 
 
-def to_json(q):
-    """Serialize quaternion object to JSON string."""
+def to_json(q: Quaternion | QuatVector | QuatMatrix | QuatTensor) -> str:
+    """Serialize any quaternion object to a JSON string.
+
+    The JSON object has ``"type"`` (class name) and ``"data"`` (nested list).
+
+    Example:
+        >>> from quat import Quaternion, to_json, from_json
+        >>> q = Quaternion(1, 2, 3, 4)
+        >>> s = to_json(q)
+        >>> q2 = from_json(s)
+        >>> q == q2
+        True
+    """
     data = to_ndarray(q)
     result = {"type": type(q).__name__, "data": data.tolist()}
     return json.dumps(result)
 
 
-def from_json(s):
-    """Deserialize JSON string to quaternion object."""
+def from_json(s: str) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
+    """Deserialize a JSON string back to a quaternion object."""
     d = json.loads(s)
     arr = np.array(d["data"], dtype=float)
     return from_ndarray(arr)
 
 
-def to_bytes(q):
-    """Serialize quaternion object to bytes.
+def to_bytes(q: Quaternion | QuatVector | QuatMatrix | QuatTensor) -> bytes:
+    """Serialize a quaternion object to a compact binary format.
 
-    Format: 4-byte header (type_id as int32, ndim as int32) + shape as int32[] + float64 data.
-    type_id: 0=Quaternion, 1=QuatVector, 2=QuatMatrix, 3=QuatTensor
+    Format: ``<type_id:i4><ndim:i4><shape:i4[]><data:f8[]>``
+
+    type_id: 0=Quaternion, 1=QuatVector, 2=QuatMatrix, 3=QuatTensor.
+
+    Example:
+        >>> from quat import Quaternion, to_bytes, from_bytes
+        >>> q = Quaternion(1.5, -2.3, 3.7, -4.1)
+        >>> b = to_bytes(q)
+        >>> q == from_bytes(b)
+        True
     """
     if isinstance(q, Quaternion):
         type_id = 0
@@ -43,8 +63,8 @@ def to_bytes(q):
     return header + data.astype(np.float64).tobytes()
 
 
-def from_bytes(b):
-    """Deserialize bytes back to quaternion object."""
+def from_bytes(b: bytes) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
+    """Deserialize bytes back to a quaternion object."""
     type_id, ndim = struct.unpack_from('<ii', b, 0)
     offset = 8
     shape = np.frombuffer(b[offset:offset + ndim * 4], dtype=np.int32)
@@ -55,10 +75,19 @@ def from_bytes(b):
     return from_ndarray(data)
 
 
-def to_scipy_rotation(q):
-    """Convert quaternion to scipy.spatial.transform.Rotation.
+def to_scipy_rotation(q: Quaternion | QuatVector) -> "Rotation":  # noqa: F821
+    """Convert quaternion(s) to ``scipy.spatial.transform.Rotation``.
 
-    Only works for unit quaternions. scipy uses (x,y,z,w) order.
+    scipy uses ``(x, y, z, w)`` order; our internal order is ``(w, x, y, z)``
+    ≡ ``(r, i, j, k)``.  Only meaningful for unit quaternions.
+
+    Example:
+        >>> from quat import Quaternion, to_scipy_rotation
+        >>> import numpy as np
+        >>> q = Quaternion.from_axis_angle((0, 0, 1), np.pi / 2)  # 90° about z
+        >>> rot = to_scipy_rotation(q)
+        >>> rot.as_quat()  # scipy returns (x, y, z, w)
+        array([0.        , 0.        , 0.70710678, 0.70710678])
     """
     from scipy.spatial.transform import Rotation
     data = to_ndarray(q)
@@ -67,16 +96,28 @@ def to_scipy_rotation(q):
     return Rotation.from_quat(data[:, [1, 2, 3, 0]])
 
 
-def from_scipy_rotation(rot):
-    """Convert scipy.spatial.transform.Rotation to Quaternion or QuatVector."""
-    scipy_quat = rot.as_quat()  # (n, 4) in x,y,z,w order
+def from_scipy_rotation(rot: "Rotation") -> Quaternion | QuatVector:  # noqa: F821
+    """Convert ``scipy.spatial.transform.Rotation`` to quaternion(s).
+
+    Returns Quaternion for a single rotation, QuatVector for multiple.
+
+    Example:
+        >>> from quat import Quaternion, to_scipy_rotation, from_scipy_rotation
+        >>> import numpy as np
+        >>> q = Quaternion.from_axis_angle((1, 0, 0), np.pi / 4)
+        >>> rot = to_scipy_rotation(q)
+        >>> q2 = from_scipy_rotation(rot)
+        >>> q.normalize().isclose(q2.normalize())
+        True
+    """
+    scipy_quat = rot.as_quat()
     if scipy_quat.ndim == 1:
         scipy_quat = scipy_quat.reshape(1, -1)
     data = np.zeros((scipy_quat.shape[0], 4))
-    data[:, 0] = scipy_quat[:, 3]  # w -> r
-    data[:, 1] = scipy_quat[:, 0]  # x -> i
-    data[:, 2] = scipy_quat[:, 1]  # y -> j
-    data[:, 3] = scipy_quat[:, 2]  # z -> k
+    data[:, 0] = scipy_quat[:, 3]
+    data[:, 1] = scipy_quat[:, 0]
+    data[:, 2] = scipy_quat[:, 1]
+    data[:, 3] = scipy_quat[:, 2]
     if data.shape[0] == 1:
         return Quaternion(data[0])
     return QuatVector(data)

@@ -1,17 +1,41 @@
-"""Low-level quaternion algebra operations — constants, Hamilton product, real-matrix tensor."""
+"""Low-level quaternion algebra — constants, Hamilton product, real-matrix tensor."""
+from __future__ import annotations
 import numpy as np
+import numpy.typing as npt
 
 _CONJ = np.array([1., -1., -1., -1.])
+"""Conjugate mask: ``_CONJ * q`` negates the three imaginary components."""
 
 _REAL_LEFT = np.zeros((4, 4, 4))
+"""Left-regular real-representation tensor.
+
+``L(q)[r, c] = Σ_k _REAL_LEFT[r, c, k] * q[k]`` yields the 4×4 real matrix
+satisfying ``L(q) @ vec(x) = vec(q * x)``.
+"""
 _REAL_LEFT[0, 0, 0] = 1;   _REAL_LEFT[0, 1, 1] = -1;  _REAL_LEFT[0, 2, 2] = -1;  _REAL_LEFT[0, 3, 3] = -1
 _REAL_LEFT[1, 0, 1] = 1;   _REAL_LEFT[1, 1, 0] = 1;   _REAL_LEFT[1, 2, 3] = -1;  _REAL_LEFT[1, 3, 2] = 1
 _REAL_LEFT[2, 0, 2] = 1;   _REAL_LEFT[2, 1, 3] = 1;   _REAL_LEFT[2, 2, 0] = 1;   _REAL_LEFT[2, 3, 1] = -1
 _REAL_LEFT[3, 0, 3] = 1;   _REAL_LEFT[3, 1, 2] = -1;  _REAL_LEFT[3, 2, 1] = 1;   _REAL_LEFT[3, 3, 0] = 1
 
 
-def _hamilton(p, q):
-    """Vectorized Hamilton product. p, q: broadcastable arrays, last dim == 4."""
+def _hamilton(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
+    """Vectorized Hamilton (quaternion) product.
+
+    Supports arbitrary leading-dimension broadcasting via
+    ``np.broadcast_shapes``.
+
+    Example:
+        >>> from quat.algebra import _hamilton
+        >>> import numpy as np
+        >>> p = np.array([1., 0., 0., 0.])   # real unit
+        >>> q = np.array([[1., 2., 3., 4.]])  # batch of one
+        >>> _hamilton(p, q)
+        array([[1., 2., 3., 4.]])
+        >>> i = np.array([0., 1., 0., 0.])
+        >>> j = np.array([0., 0., 1., 0.])
+        >>> _hamilton(i, j)   # i*j = k
+        array([0., 0., 0., 1.])
+    """
     a1, b1, c1, d1 = p[..., 0], p[..., 1], p[..., 2], p[..., 3]
     a2, b2, c2, d2 = q[..., 0], q[..., 1], q[..., 2], q[..., 3]
     shp = np.broadcast_shapes(p.shape[:-1], q.shape[:-1]) + (4,)

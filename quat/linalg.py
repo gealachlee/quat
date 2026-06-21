@@ -1,69 +1,93 @@
 """Quaternion linear algebra — SVD, rank, condition number, pseudo-inverse."""
+from __future__ import annotations
+from typing import Optional, Tuple
 import numpy as np
 from quat.core import Quaternion
 from quat.collections import QuatVector, QuatMatrix
 
 
-def svd(A):
+def svd(A: QuatMatrix) -> Tuple[QuatMatrix, np.ndarray, QuatMatrix]:
     """Quaternion singular value decomposition.
 
-    Decompose a quaternion matrix A (m×n) into:
-        A = U * Σ * V^H
-    where U is m×m unitary quaternion matrix, Σ is m×n real diagonal
-    (singular values), and V^H is n×n unitary quaternion matrix.
+    Decompose a quaternion matrix A (m×n) into::
 
-    Uses the real representation: builds the 4m×4n real matrix of A,
-    computes its SVD, then reconstructs quaternion U and V^H from the
-    structured real singular vectors.
+        A = U * Σ * V^H
+
+    where U is m×m unitary quaternion matrix, Σ is m×n real diagonal
+    (singular values), and V^H is the conjugate-transpose of an n×n
+    unitary quaternion matrix.
+
+    Implemented via the real (left-regular) representation: each quaternion
+    element is expanded to a 4×4 real block, forming a 4m×4n real matrix
+    whose SVD is computed, then the quaternion structure is reconstructed.
 
     Args:
-        A: QuatMatrix of shape (m, n)
+        A: QuatMatrix of shape (m, n).
 
     Returns:
-        (U, s, Vh) where:
-            U:  QuatMatrix (m, m) — left singular vectors
-            s:  ndarray (k,) where k = min(m, n) — singular values
-            Vh: QuatMatrix (n, n) — right singular vectors (conjugate-transposed)
+        ``(U, s, Vh)`` where:
+          - *U*:  QuatMatrix (m, m) — left singular vectors.
+          - *s*:  ``ndarray`` (k,) where k = min(m, n) — singular values.
+          - *Vh*: QuatMatrix (n, n) — right singular vectors (conjugate-transposed).
+
+    Example:
+        >>> from quat import QuatMatrix, svd
+        >>> import numpy as np
+        >>> A = QuatMatrix(np.random.randn(4, 5, 4))
+        >>> U, s, Vh = svd(A)
+        >>> S = QuatMatrix.zeros(4, 5)
+        >>> for i in range(len(s)):
+        ...     S._data[i, i, 0] = s[i]
+        >>> recon = U * S * Vh
+        >>> np.allclose(A.to_array(), recon.to_array())
+        True
     """
-    A_real = A.to_real_matrix_left()  # (4m, 4n)
+    A_real = A.to_real_matrix_left()
     U_real, s_full, Vt_real = np.linalg.svd(A_real, full_matrices=True)
-    # Singular values come in groups of 4; take every 4th unique value
     k = min(A.shape[0], A.shape[1])
     s = s_full[::4][:k]
 
-    # Reconstruct quaternion U: U_real is (4m, 4m) → U is (m, m)
     U_data = np.empty((A.shape[0], A.shape[0], 4))
     for i in range(0, U_real.shape[1], 4):
         j = i // 4
-        block = U_real[:, i:i+4]  # (4m, 4)
+        block = U_real[:, i:i+4]
         for r in range(A.shape[0]):
             blk = block[4*r:4*r+4, :]
             U_data[r, j] = Quaternion.from_real_matrix_left(blk)._data
     U = QuatMatrix(U_data)
 
-    # Reconstruct quaternion V: Vt_real is (4n, 4n) → V is (n, n)
     n_A = A.shape[1]
     V_data = np.empty((n_A, n_A, 4))
     for i in range(0, Vt_real.shape[0], 4):
         j = i // 4
-        block = Vt_real[i:i+4, :]  # (4, 4n)
+        block = Vt_real[i:i+4, :]
         for c in range(n_A):
-            blk = block[:, 4*c:4*c+4].T  # transpose to left-repr
+            blk = block[:, 4*c:4*c+4].T
             V_data[c, j] = Quaternion.from_real_matrix_left(blk)._data
     V = QuatMatrix(V_data)
 
     return U, s, V.H
 
 
-def rank(A, tol=None):
+def rank(A: QuatMatrix, tol: Optional[float] = None) -> int:
     """Compute the quaternion matrix rank via SVD.
 
     Args:
-        A: QuatMatrix
-        tol: tolerance for singular values (default: max(m,n) * max(s) * eps)
+        A: QuatMatrix.
+        tol: Singular value threshold.  Defaults to
+            ``max(m, n) * σ_max * machine_epsilon``.
 
     Returns:
-        int
+        int — number of singular values exceeding *tol*.
+
+    Example:
+        >>> from quat import QuatMatrix, rank
+        >>> I = QuatMatrix.eye(4)
+        >>> rank(I)
+        4
+        >>> Z = QuatMatrix.zeros(3, 3)
+        >>> rank(Z)
+        0
     """
     _, s, _ = svd(A)
     if tol is None:
@@ -71,30 +95,48 @@ def rank(A, tol=None):
     return int((s > tol).sum())
 
 
-def condition_number(A):
-    """Compute the condition number (σ_max / σ_min) of a quaternion matrix.
+def condition_number(A: QuatMatrix) -> float:
+    """Condition number σ_max / σ_min of a quaternion matrix.
 
     Args:
-        A: QuatMatrix
+        A: QuatMatrix.
 
     Returns:
-        float
+        float — ratio of largest to smallest positive singular value.
+
+    Example:
+        >>> from quat import QuatMatrix, condition_number
+        >>> import numpy as np
+        >>> I = QuatMatrix.eye(3)
+        >>> np.testing.assert_almost_equal(condition_number(I), 1.0)
     """
     _, s, _ = svd(A)
     return float(s.max() / s[s > 1e-15].min())
 
 
-def pseudo_inverse(A, tol=None):
-    """Moore-Penrose pseudo-inverse of a quaternion matrix.
+def pseudo_inverse(A: QuatMatrix, tol: Optional[float] = None) -> QuatMatrix:
+    """Moore-Penrose pseudo-inverse A⁺ = V * Σ⁺ * U^H.
 
-    A⁺ = V * Σ⁺ * U^H, where Σ⁺ contains 1/σ for σ > tol.
+    Σ⁺ contains 1/σ for singular values exceeding *tol*, and 0 otherwise.
 
     Args:
-        A: QuatMatrix (m, n)
-        tol: singular value cutoff
+        A: QuatMatrix (m, n).
+        tol: Cutoff for singular values.
 
     Returns:
-        QuatMatrix (n, m)
+        QuatMatrix (n, m).
+
+    Example:
+        >>> from quat import QuatMatrix, pseudo_inverse
+        >>> import numpy as np
+        >>> A = QuatMatrix(np.random.randn(3, 4, 4))
+        >>> A_pinv = pseudo_inverse(A)
+        >>> A_pinv.shape
+        (4, 3)
+        >>> # Verify M-P condition: A @ A⁺ @ A ≈ A
+        >>> recon = A * A_pinv * A
+        >>> np.allclose(A.to_array(), recon.to_array(), atol=1e-5)
+        True
     """
     U, s, Vh = svd(A)
     if tol is None:
@@ -109,14 +151,24 @@ def pseudo_inverse(A, tol=None):
     return Vh.H * S_pinv * U.H
 
 
-def trace(A):
-    """Quaternion trace: sum of diagonal elements.
+def trace(A: QuatMatrix) -> Quaternion:
+    """Quaternion trace — sum of diagonal elements.
 
     Args:
-        A: QuatMatrix (square)
+        A: Square QuatMatrix.
 
     Returns:
-        Quaternion
+        Quaternion.
+
+    Raises:
+        ValueError: if *A* is not square.
+
+    Example:
+        >>> from quat import QuatMatrix, trace
+        >>> I = QuatMatrix.eye(3)
+        >>> tr = trace(I)
+        >>> tr.r, tr.i, tr.j, tr.k
+        (3.0, 0.0, 0.0, 0.0)
     """
     if A.shape[0] != A.shape[1]:
         raise ValueError(f"Expected square matrix, got {A.shape}")
@@ -126,37 +178,54 @@ def trace(A):
     return result
 
 
-def det(A):
-    """Determinant of a quaternion matrix via its real representation.
+def det(A: QuatMatrix) -> float:
+    """Study determinant of a quaternion matrix.
 
-    For a quaternion matrix A of size n×n, its real representation is
-    4n×4n. The determinant of the real representation is (det(A))⁴ for
-    a suitably defined quaternion determinant (Study determinant).
+    Computed via the real (left-regular) representation: the 4n×4n real
+    matrix has determinant ``(det(A))⁴``.  The Study determinant is the
+    positive 4th root.
 
     Args:
-        A: QuatMatrix (square)
+        A: Square QuatMatrix.
 
     Returns:
-        float — Study determinant
+        float.
+
+    Raises:
+        ValueError: if *A* is not square.
+
+    Example:
+        >>> from quat import QuatMatrix, det
+        >>> I = QuatMatrix.eye(3)
+        >>> abs(det(I) - 1.0) < 1e-5
+        True
     """
     if A.shape[0] != A.shape[1]:
         raise ValueError(f"Expected square matrix, got {A.shape}")
     A_real = A.to_real_matrix_left()
     det_real = np.linalg.det(A_real)
     if det_real < 0:
-        return float((-(-det_real) ** (1/4)))
-    return float(det_real ** (1/4))
+        return float((-(-det_real) ** (1 / 4)))
+    return float(det_real ** (1 / 4))
 
 
-def norm(A, ord='fro'):
+def norm(A: QuatMatrix, ord: str = 'fro') -> float:
     """Matrix norm of a quaternion matrix.
 
     Args:
-        A: QuatMatrix
-        ord: 'fro' (Frobenius) or 2 (spectral)
+        A: QuatMatrix.
+        ord: ``'fro'`` (Frobenius) or ``2`` (spectral).
 
     Returns:
-        float
+        float.
+
+    Example:
+        >>> from quat import QuatMatrix, norm
+        >>> I = QuatMatrix.eye(3)
+        >>> norm(I, 'fro')
+        1.7320...
+        >>> norm(I, 2)
+        1.0
     """
     if ord == 'fro' or ord is None:
         return A.norm()
@@ -167,17 +236,29 @@ def norm(A, ord='fro'):
         raise ValueError(f"Unsupported norm order: {ord}")
 
 
-def solve(A, b):
-    """Solve quaternion linear system A * x = b.
+def solve(A: QuatMatrix, b: QuatVector) -> QuatVector:
+    """Solve quaternion linear system A * x = b (least-squares).
 
-    Uses pseudo-inverse for the least-squares solution.
+    Uses the Moore-Penrose pseudo-inverse::
+
+        x = A⁺ * b
 
     Args:
-        A: QuatMatrix (m, n)
-        b: QuatVector (m,)
+        A: QuatMatrix (m, n).
+        b: QuatVector (m,).
 
     Returns:
-        QuatVector (n,) — solution x
+        QuatVector (n,) — solution *x*.
+
+    Example:
+        >>> from quat import QuatMatrix, QuatVector, solve
+        >>> A = QuatMatrix.eye(3)
+        >>> b = QuatVector.zeros(3)       # actually all ones below
+        >>> import numpy as np
+        >>> b = QuatVector(np.ones((3, 4)))
+        >>> x = solve(A, b)
+        >>> np.allclose(x.to_array(), b.to_array())
+        True
     """
     A_pinv = pseudo_inverse(A)
     return A_pinv * b
