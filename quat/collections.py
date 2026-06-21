@@ -379,6 +379,12 @@ class QuatMatrix:
         t = np.transpose(self._data, (1, 0, 2))
         return QuatMatrix(t * _CONJ)
 
+    def norm(self):
+        return float(np.sqrt(self.norm_squared()))
+
+    def norm_squared(self):
+        return float((self._data * self._data).sum())
+
     @property
     def H(self):
         return self.adjoint()

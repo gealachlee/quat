@@ -31,6 +31,10 @@ Algorithms (from quat.algorithms):
   cubic_kernel_matrix, gaussian_kernel_matrix,
   compute_kernel_matrix, compute_kernel_cross, normalize_kernel,
   solve_ksqmm, predict_ksqmm
+
+Linear algebra (from quat.linalg):
+  svd, rank, condition_number, pseudo_inverse,
+  trace, det, norm, solve
 """
 from quat.algebra import _hamilton, _CONJ, _REAL_LEFT
 from quat.core import Quaternion, quat, _I, _J, _K, _ZERO, _R, _ONE_Q
@@ -54,6 +58,10 @@ from quat.algorithms import (
     normalize_kernel, compute_kernel_matrix, compute_kernel_cross,
     solve_ksqmm, predict_ksqmm,
 )
+from quat.linalg import (
+    svd, rank, condition_number, pseudo_inverse,
+    trace, det, norm, solve,
+)
 
 __all__ = [
     'Quaternion', 'QuatVector', 'QuatMatrix', 'QuatTensor',
@@ -69,4 +77,6 @@ __all__ = [
     'gaussian_kernel_matrix', 'gaussian_kernel_cross',
     'normalize_kernel', 'compute_kernel_matrix', 'compute_kernel_cross',
     'solve_ksqmm', 'predict_ksqmm',
+    'svd', 'rank', 'condition_number', 'pseudo_inverse',
+    'trace', 'det', 'norm', 'solve',
 ]
