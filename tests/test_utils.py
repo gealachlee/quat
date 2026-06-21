@@ -117,3 +117,65 @@ class TestBroadcastHelpers(QuatTestCase):
         from quat.utils import broadcast_quat_shapes
         shapes = broadcast_quat_shapes((2, 3), (2, 3))
         self.assertEqual(shapes, (2, 3))
+
+
+class TestNumericValidation(QuatTestCase):
+    def test_isnan_quaternion_method(self):
+        from quat.core import Quaternion
+        self.assertFalse(Quaternion(1, 2, 3, 4).isnan())
+        self.assertTrue(Quaternion(1, float('nan'), 3, 4).isnan())
+
+    def test_isnan_quaternion_func(self):
+        from quat.utils import isnan
+        from quat.core import Quaternion
+        self.assertTrue(isnan(Quaternion(1, float('nan'), 3, 4)))
+
+    def test_isnan_vector(self):
+        from quat.collections import QuatVector
+        v = QuatVector(np.array([[1., 2., 3., 4.], [1., float('nan'), 3., 4.]]))
+        result = v.isnan()
+        self.assertFalse(result[0])
+        self.assertTrue(result[1])
+
+    def test_isinf_quaternion(self):
+        from quat.core import Quaternion
+        self.assertFalse(Quaternion(1, 2, 3, 4).isinf())
+        self.assertTrue(Quaternion(1, float('inf'), 3, 4).isinf())
+
+    def test_isinf_matrix(self):
+        from quat.collections import QuatMatrix
+        M = QuatMatrix(np.ones((2, 2, 4)))
+        M._data[0, 1, 2] = float('inf')
+        result = M.isinf()
+        self.assertFalse(result[0, 0])
+        self.assertTrue(result[0, 1])
+
+    def test_isfinite_quaternion(self):
+        from quat.core import Quaternion
+        self.assertTrue(Quaternion(1, 2, 3, 4).isfinite())
+        self.assertFalse(Quaternion(1, float('inf'), 3, 4).isfinite())
+
+    def test_isfinite_tensor(self):
+        from quat.collections import QuatTensor
+        T = QuatTensor(np.ones((2, 3, 4, 4)))
+        self.assertTrue(T.isfinite().all())
+
+    def test_isclose_quaternion(self):
+        from quat.core import Quaternion
+        self.assertTrue(Quaternion(1, 2, 3, 4).isclose(Quaternion(1, 2, 3, 4)))
+        self.assertFalse(Quaternion(1, 2, 3, 4).isclose(Quaternion(5, 6, 7, 8)))
+
+    def test_isclose_vector(self):
+        from quat.collections import QuatVector
+        v1 = QuatVector(np.ones((3, 4)))
+        v2 = QuatVector(np.ones((3, 4)))
+        v2._data[1, 2] = 100.0
+        result = v1.isclose(v2)
+        self.assertTrue(result[0])
+        self.assertFalse(result[1])
+        self.assertTrue(result[2])
+
+    def test_isclose_func(self):
+        from quat.utils import isclose
+        from quat.core import Quaternion
+        self.assertTrue(isclose(Quaternion(1, 2, 3, 4), Quaternion(1, 2, 3, 4)))

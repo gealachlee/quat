@@ -155,6 +155,20 @@ class QuatVector:
             raise ZeroDivisionError("Cannot normalize zero vector")
         return self / n
 
+    def isnan(self):
+        return np.any(np.isnan(self._data), axis=-1)
+
+    def isinf(self):
+        return np.any(np.isinf(self._data), axis=-1)
+
+    def isfinite(self):
+        return np.all(np.isfinite(self._data), axis=-1)
+
+    def isclose(self, other, rtol=1e-05, atol=1e-08):
+        if len(self) != len(other):
+            raise ValueError("Size mismatch")
+        return np.isclose(self._data, other._data, rtol=rtol, atol=atol).all(axis=-1)
+
     # -- matrix representation -----------------------------------------------
     def to_complex_matrix(self):
         n = len(self)
@@ -368,6 +382,20 @@ class QuatMatrix:
     @property
     def H(self):
         return self.adjoint()
+
+    def isnan(self):
+        return np.any(np.isnan(self._data), axis=-1)
+
+    def isinf(self):
+        return np.any(np.isinf(self._data), axis=-1)
+
+    def isfinite(self):
+        return np.all(np.isfinite(self._data), axis=-1)
+
+    def isclose(self, other, rtol=1e-05, atol=1e-08):
+        if self.shape != other.shape:
+            raise ValueError("Shape mismatch")
+        return np.isclose(self._data, other._data, rtol=rtol, atol=atol).all(axis=-1)
 
     # -- matrix representations ----------------------------------------------
     def to_complex_matrix(self):
@@ -614,6 +642,20 @@ class QuatTensor:
         conj_sum = _hamilton(
             self._data * _CONJ, self._data).sum(axis=(0, 1, 2))
         return float(conj_sum[0])
+
+    def isnan(self):
+        return np.any(np.isnan(self._data), axis=-1)
+
+    def isinf(self):
+        return np.any(np.isinf(self._data), axis=-1)
+
+    def isfinite(self):
+        return np.all(np.isfinite(self._data), axis=-1)
+
+    def isclose(self, other, rtol=1e-05, atol=1e-08):
+        if self.shape != other.shape:
+            raise ValueError("Shape mismatch")
+        return np.isclose(self._data, other._data, rtol=rtol, atol=atol).all(axis=-1)
 
     # -- unfolding -----------------------------------------------------------
     def unfold(self, mode):

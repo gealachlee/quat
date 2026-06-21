@@ -249,6 +249,18 @@ class Quaternion:
     def commutator(self, other):
         return self * other - other * self
 
+    def isnan(self):
+        return bool(np.any(np.isnan(self._data)))
+
+    def isinf(self):
+        return bool(np.any(np.isinf(self._data)))
+
+    def isfinite(self):
+        return bool(np.all(np.isfinite(self._data)))
+
+    def isclose(self, other, rtol=1e-05, atol=1e-08):
+        return bool(np.allclose(self._data, other._data, rtol=rtol, atol=atol))
+
     # -- rotation ------------------------------------------------------------
     def rotate_vector(self, v):
         qv = Quaternion(0., float(v[0]), float(v[1]), float(v[2]))

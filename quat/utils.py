@@ -53,3 +53,24 @@ def stack_quat(quaternions, axis=0):
         data = np.stack([q._data for q in quaternions], axis=axis)
         return from_ndarray(data)
     raise TypeError(f"Cannot stack type {type(first)}")
+
+
+# -- numeric validation --------------------------------------------------------
+def isnan(q):
+    """Check if any quaternion component is NaN. Delegates to q.isnan()."""
+    return q.isnan()
+
+
+def isinf(q):
+    """Check if any quaternion component is infinite. Delegates to q.isinf()."""
+    return q.isinf()
+
+
+def isfinite(q):
+    """Check if all quaternion components are finite. Delegates to q.isfinite()."""
+    return q.isfinite()
+
+
+def isclose(q1, q2, rtol=1e-05, atol=1e-08):
+    """Check if two quaternions are element-wise close. Delegates to q1.isclose(q2)."""
+    return q1.isclose(q2, rtol=rtol, atol=atol)

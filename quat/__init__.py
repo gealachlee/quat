@@ -16,7 +16,8 @@ Basis constants (from quat.core):
   _I, _J, _K, _ZERO, _R, _ONE_Q
 
 Utilities (from quat.utils):
-  to_ndarray, from_ndarray, from_components, broadcast_quat_shapes, stack_quat
+  to_ndarray, from_ndarray, from_components, broadcast_quat_shapes, stack_quat,
+  isnan, isinf, isfinite, isclose
 
 Serialization (from quat.serialization):
   to_json, from_json, to_bytes, from_bytes,
@@ -38,6 +39,7 @@ from quat.collections import (
     dict_to_quat_matrix, dict_to_quat_tensor, labels_to_quat_vector,
 )
 from quat.utils import to_ndarray, from_ndarray, from_components, broadcast_quat_shapes, stack_quat
+from quat.utils import isnan, isinf, isfinite, isclose
 from quat.serialization import (
     to_json, from_json, to_bytes, from_bytes,
     to_scipy_rotation, from_scipy_rotation,
@@ -58,6 +60,7 @@ __all__ = [
     'quat', 'dict_to_quat_matrix', 'dict_to_quat_tensor', 'labels_to_quat_vector',
     '_hamilton', '_CONJ', '_REAL_LEFT', '_I', '_J', '_K', '_ZERO', '_R', '_ONE_Q',
     'to_ndarray', 'from_ndarray', 'from_components', 'broadcast_quat_shapes', 'stack_quat',
+    'isnan', 'isinf', 'isfinite', 'isclose',
     'to_json', 'from_json', 'to_bytes', 'from_bytes',
     'to_scipy_rotation', 'from_scipy_rotation',
     'hamilton_einsum', 'quat_matmul',
