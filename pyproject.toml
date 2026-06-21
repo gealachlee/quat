@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quat"
+version = "0.1.0"
+description = "Quaternion algebra library with kernel methods"
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.21"]
+
+[project.optional-dependencies]
+data = ["scipy>=1.7", "Pillow>=9.0", "scikit-learn>=1.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["quat", "quat.*"]
