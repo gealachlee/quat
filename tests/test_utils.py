@@ -70,26 +70,26 @@ class TestFromNdarray(QuatTestCase):
         self.assertAlmostEqual(q.r, 5.0)
 
 
-class TestBatchQuat(QuatTestCase):
-    def test_batch_from_components(self):
-        from quat.utils import batch_quat
+class TestFromComponents(QuatTestCase):
+    def test_from_components(self):
+        from quat.utils import from_components
         from quat.collections import QuatVector
         r = np.array([1., 2., 3.])
         i = np.array([4., 5., 6.])
         j = np.array([7., 8., 9.])
         k = np.array([0., 0., 0.])
-        v = batch_quat(r, i, j, k)
+        v = from_components(r, i, j, k)
         self.assertIsInstance(v, QuatVector)
         self.assertTrue(np.allclose(v.real, r))
 
-    def test_batch_matrix(self):
-        from quat.utils import batch_quat
+    def test_matrix(self):
+        from quat.utils import from_components
         from quat.collections import QuatMatrix
         r = np.ones((2, 3))
         i = np.ones((2, 3)) * 2
         j = np.ones((2, 3)) * 3
         k = np.ones((2, 3)) * 4
-        M = batch_quat(r, i, j, k)
+        M = from_components(r, i, j, k)
         self.assertIsInstance(M, QuatMatrix)
         self.assertEqual(M.shape, (2, 3))
 

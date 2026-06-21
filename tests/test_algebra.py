@@ -55,11 +55,11 @@ class TestConstants(QuatTestCase):
         from quat.algebra import _CONJ
         self.assertTrue(np.allclose(_CONJ, [1., -1., -1., -1.]))
 
-    def test_RW_tensor(self):
-        from quat.algebra import _RW
-        self.assertEqual(_RW.shape, (4, 4, 4))
+    def test_real_left_tensor(self):
+        from quat.algebra import _REAL_LEFT
+        self.assertEqual(_REAL_LEFT.shape, (4, 4, 4))
         q = np.array([1., 2., 3., 4.])
-        R = np.einsum('rck,k->rc', _RW, q)
+        R = np.einsum('rck,k->rc', _REAL_LEFT, q)
         expected = np.array([
             [1., -2., -3., -4.],
             [2.,  1., -4.,  3.],

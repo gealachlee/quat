@@ -54,11 +54,11 @@ class TestQuaternionAccessors(QuatTestCase):
         q = Quaternion(1, 2, 3, 4)
         self.assertEqual(q.components, (1.0, 2.0, 3.0, 4.0))
 
-    def test_scalar_vector(self):
+    def test_real_imag(self):
         from quat.core import Quaternion
         q = Quaternion(1, 2, 3, 4)
-        self.assertAlmostEqual(q.scalar, 1.0)
-        self.assertTrue(np.allclose(q.vector, [2., 3., 4.]))
+        self.assertAlmostEqual(q.real, 1.0)
+        self.assertTrue(np.allclose(q.imag, [2., 3., 4.]))
 
     def test_getitem(self):
         from quat.core import Quaternion
@@ -286,10 +286,10 @@ class TestQuatFactory(QuatTestCase):
         self.assertEqual(q, Quaternion(1, 2, 3, 4))
 
     def test_basis_constants(self):
-        from quat.core import _I, _J, _K, _ZERO, _R, _ONE, Quaternion
+        from quat.core import _I, _J, _K, _ZERO, _R, _ONE_Q, Quaternion
         self.assertEqual(_I, Quaternion(0, 1, 0, 0))
         self.assertEqual(_J, Quaternion(0, 0, 1, 0))
         self.assertEqual(_K, Quaternion(0, 0, 0, 1))
         self.assertEqual(_ZERO, Quaternion(0, 0, 0, 0))
         self.assertEqual(_R, Quaternion(1, 0, 0, 0))
-        self.assertEqual(_ONE, Quaternion(1, 1, 1, 1))
+        self.assertEqual(_ONE_Q, Quaternion(1, 1, 1, 1))

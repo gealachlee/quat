@@ -55,24 +55,16 @@ def from_bytes(b):
     return from_ndarray(data)
 
 
-def as_ndarray(q):
-    """Return a numpy ndarray view/copy optimized for numpy interop."""
-    if isinstance(q, Quaternion):
-        return q._data.copy().reshape(1, 4)
-    return np.ascontiguousarray(q._data)
-
-
 def to_scipy_rotation(q):
     """Convert quaternion to scipy.spatial.transform.Rotation.
 
     Only works for unit quaternions. scipy uses (x,y,z,w) order.
     """
     from scipy.spatial.transform import Rotation
-    data = as_ndarray(q)
-    # scipy: x,y,z,w = indices [1,2,3,0]
-    if data.ndim == 2 and data.shape[0] > 1:
-        return Rotation.from_quat(data[:, [1, 2, 3, 0]])
-    return Rotation.from_quat(data.reshape(-1, 4)[:, [1, 2, 3, 0]])
+    data = to_ndarray(q)
+    if data.ndim == 1:
+        data = data.reshape(1, -1)
+    return Rotation.from_quat(data[:, [1, 2, 3, 0]])
 
 
 def from_scipy_rotation(rot):

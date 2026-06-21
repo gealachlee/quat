@@ -2,7 +2,7 @@
 """Demo: 生成一个2×2纯四元数矩阵（实部全为0），并输出其实表示矩阵。"""
 
 import numpy as np
-from quat import Quaternion, QuatMatrix, _RW
+from quat import Quaternion, QuatMatrix, _REAL_LEFT
 
 # 构造 2×2 四元数矩阵，每个元素实部为 0（纯四元数）
 # q11 = 0 + 1i + 2j + 3k
@@ -43,7 +43,7 @@ print("实表示矩阵 R(Q)  (8×8):")
 print("=" * 60)
 print()
 
-# 显示 _RW 张量的含义：每个 4×4 块的结构
+# 显示 _REAL_LEFT 张量的含义：每个 4×4 块的结构
 print("单元素 q = a+bi+cj+dk 的 4×4 实表示块 R(q):")
 print("  R(q) = [[a, -b, -c, -d],")
 print("          [b,  a, -d,  c],")
@@ -94,13 +94,13 @@ print(f"  差异: {np.abs(qv_result - mv_result).max():.2e}")
 print()
 
 print("=" * 60)
-print("_RW 张量 (4×4×4) — 定义每个 4×4 块的结构:")
-print("  _RW[r, c, k]: 在块位置 (r,c) 处，四元数分量 k 的系数")
+print("_REAL_LEFT 张量 (4×4×4) — 定义每个 4×4 块的结构:")
+print("  _REAL_LEFT[r, c, k]: 在块位置 (r,c) 处，四元数分量 k 的系数")
 print("=" * 60)
 for r in range(4):
     print(f"  row r={r}:")
     for c in range(4):
-        coeffs = _RW[r, c]
+        coeffs = _REAL_LEFT[r, c]
         nonzero = [(k, v) for k, v in enumerate(coeffs) if v != 0]
         terms = " + ".join(f"{int(v)}·k{k}" for k, v in nonzero)
         print(f"    col c={c}: {terms}")

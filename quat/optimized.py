@@ -19,11 +19,11 @@ def hamilton_einsum(p, q):
     return np.einsum('rck,...c,...k->...r', H, p, q, optimize=True)
 
 
-_H_TENSOR = np.zeros((4, 4, 4))
-_H_TENSOR[0, 0, 0] = 1;    _H_TENSOR[0, 1, 1] = -1;   _H_TENSOR[0, 2, 2] = -1;   _H_TENSOR[0, 3, 3] = -1
-_H_TENSOR[1, 0, 1] = 1;    _H_TENSOR[1, 1, 0] = 1;    _H_TENSOR[1, 2, 3] = 1;    _H_TENSOR[1, 3, 2] = -1
-_H_TENSOR[2, 0, 2] = 1;    _H_TENSOR[2, 1, 3] = -1;   _H_TENSOR[2, 2, 0] = 1;    _H_TENSOR[2, 3, 1] = 1
-_H_TENSOR[3, 0, 3] = 1;    _H_TENSOR[3, 1, 2] = 1;    _H_TENSOR[3, 2, 1] = -1;   _H_TENSOR[3, 3, 0] = 1
+_HAMILTON_TENSOR = np.zeros((4, 4, 4))
+_HAMILTON_TENSOR[0, 0, 0] = 1;    _HAMILTON_TENSOR[0, 1, 1] = -1;   _HAMILTON_TENSOR[0, 2, 2] = -1;   _HAMILTON_TENSOR[0, 3, 3] = -1
+_HAMILTON_TENSOR[1, 0, 1] = 1;    _HAMILTON_TENSOR[1, 1, 0] = 1;    _HAMILTON_TENSOR[1, 2, 3] = 1;    _HAMILTON_TENSOR[1, 3, 2] = -1
+_HAMILTON_TENSOR[2, 0, 2] = 1;    _HAMILTON_TENSOR[2, 1, 3] = -1;   _HAMILTON_TENSOR[2, 2, 0] = 1;    _HAMILTON_TENSOR[2, 3, 1] = 1
+_HAMILTON_TENSOR[3, 0, 3] = 1;    _HAMILTON_TENSOR[3, 1, 2] = 1;    _HAMILTON_TENSOR[3, 2, 1] = -1;   _HAMILTON_TENSOR[3, 3, 0] = 1
 
 
 def quat_matmul(A_data, B_data):
@@ -36,7 +36,7 @@ def quat_matmul(A_data, B_data):
     Returns:
         (m, n, 4) ndarray
     """
-    return np.einsum('rab,mia,inb->mnr', _H_TENSOR, A_data, B_data, optimize=True)
+    return np.einsum('rab,mia,inb->mnr', _HAMILTON_TENSOR, A_data, B_data, optimize=True)
 
 
 def conjugate_batch(data):

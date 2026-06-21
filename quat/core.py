@@ -55,7 +55,7 @@ class Quaternion:
         return cls(0., 0., 0., 0.)
 
     @classmethod
-    def one(cls):
+    def one_q(cls):
         return cls(1., 1., 1., 1.)
 
     @classmethod
@@ -82,14 +82,6 @@ class Quaternion:
     @property
     def k(self):
         return self._data[3].item()
-
-    @property
-    def scalar(self):
-        return self._data[0].item()
-
-    @property
-    def vector(self):
-        return self._data[1:4].copy()
 
     @property
     def real(self):
@@ -261,7 +253,7 @@ class Quaternion:
     def rotate_vector(self, v):
         qv = Quaternion(0., float(v[0]), float(v[1]), float(v[2]))
         qc = self.conjugate()
-        return (self * qv * qc).vector
+        return (self * qv * qc).imag
 
     # -- matrix representations ----------------------------------------------
     def to_complex_matrix(self):
@@ -335,4 +327,4 @@ _J    = Quaternion(0, 0, 1, 0)
 _K    = Quaternion(0, 0, 0, 1)
 _ZERO = Quaternion(0, 0, 0, 0)
 _R    = Quaternion(1, 0, 0, 0)
-_ONE  = Quaternion(1, 1, 1, 1)
+_ONE_Q = Quaternion(1, 1, 1, 1)

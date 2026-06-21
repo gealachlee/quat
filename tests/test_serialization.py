@@ -66,29 +66,6 @@ class TestBinarySerialization(QuatTestCase):
         self.assertTrue(np.allclose(M.to_array(), M2.to_array()))
 
 
-class TestNumpyInterop(QuatTestCase):
-    def test_ndarray_quaternion(self):
-        from quat.serialization import as_ndarray
-        from quat.core import Quaternion
-        q = Quaternion(1, 2, 3, 4)
-        arr = as_ndarray(q)
-        self.assertEqual(arr.shape, (1, 4))
-
-    def test_ndarray_vector(self):
-        from quat.serialization import as_ndarray
-        from quat.collections import QuatVector
-        v = QuatVector(np.ones((5, 4)))
-        arr = as_ndarray(v)
-        self.assertEqual(arr.shape, (5, 4))
-
-    def test_ndarray_matrix(self):
-        from quat.serialization import as_ndarray
-        from quat.collections import QuatMatrix
-        M = QuatMatrix(np.ones((3, 4, 4)))
-        arr = as_ndarray(M)
-        self.assertEqual(arr.shape, (3, 4, 4))
-
-
 class TestScipyRotationInterop(QuatTestCase):
     def test_quaternion_to_scipy(self):
         try:

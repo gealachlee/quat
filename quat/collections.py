@@ -2,7 +2,7 @@
 import numpy as np
 from typing import Tuple, List
 from numbers import Real, Complex
-from quat.algebra import _hamilton, _CONJ, _RW
+from quat.algebra import _hamilton, _CONJ, _REAL_LEFT
 from quat.core import Quaternion
 
 
@@ -392,7 +392,7 @@ class QuatMatrix:
         return cls(result)
 
     def to_real_matrix_left(self):
-        return np.einsum('rck,mnk->mrnc', _RW, self._data, optimize=True).reshape(
+        return np.einsum('rck,mnk->mrnc', _REAL_LEFT, self._data, optimize=True).reshape(
             4 * self._m, 4 * self._n)
 
     @classmethod

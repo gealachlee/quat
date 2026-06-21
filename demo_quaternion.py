@@ -4,7 +4,7 @@
 import sys; sys.path.insert(0, '/sessions/practical-eloquent-bell/mnt/Quaternion')
 from quat import (
     Quaternion, QuatVector, QuatMatrix, QuatTensor,
-    quat, _I, _J, _K, _ZERO, _R, _ONE,
+    quat, _I, _J, _K, _ZERO, _R, _ONE_Q,
 )
 import numpy as np
 
@@ -25,7 +25,7 @@ print(f"  q2 = {q2}  (pure real)")
 print(f"  q3 = {q3}  (a+bi)")
 print(f"  q5 = {q5}  (rotation quaternion)")
 print(f"  _R = {_R}       (real multiplicative identity)")
-print(f"  _ONE = {_ONE}   (1+1i+1j+1k)")
+print(f"  _ONE_Q = {_ONE_Q}   (1+1i+1j+1k)")
 
 # 2. Arithmetic
 hdr("2. Basic Arithmetic")
@@ -96,7 +96,7 @@ print(f"  L^T L = |q|^2 I_4: {np.allclose(L.T @ L, q.norm_squared() * np.eye(4))
 
 # 10. QuatVector
 hdr("10. QuatVector")
-v = QuatVector([_I, _J, _K, _ONE])
+v = QuatVector([_I, _J, _K, _ONE_Q])
 w = QuatVector([Quaternion(2,0,0,0), _ZERO, _K, _I])
 print(f"  v = {v}")
 print(f"  inner(v,w) = {v.inner(w)}")
@@ -104,8 +104,8 @@ print(f"  |v| = {v.norm()}")
 
 # 11. QuatMatrix
 hdr("11. QuatMatrix")
-A = QuatMatrix([[_I, _J], [_K, _ONE]])
-B = QuatMatrix([[_ONE, _ZERO], [_I, _J]])
+A = QuatMatrix([[_I, _J], [_K, _ONE_Q]])
+B = QuatMatrix([[_ONE_Q, _ZERO], [_I, _J]])
 print(f"  A = {A}")
 print(f"  A * B = {A * B}")
 x = QuatVector([_I, _J])

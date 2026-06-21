@@ -29,7 +29,7 @@ def from_ndarray(arr):
     raise ValueError(f"Cannot infer quaternion type from {arr.ndim}-d array")
 
 
-def batch_quat(r, i, j, k):
+def from_components(r, i, j, k):
     r = np.asarray(r, dtype=float)
     i = np.asarray(i, dtype=float)
     j = np.asarray(j, dtype=float)

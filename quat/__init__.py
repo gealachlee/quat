@@ -10,17 +10,17 @@ Provides:
   dict_to_quat_matrix, dict_to_quat_tensor, labels_to_quat_vector
 
 Algebra primitives (from quat.algebra):
-  _hamilton, _CONJ, _RW
+  _hamilton, _CONJ, _REAL_LEFT
 
 Basis constants (from quat.core):
-  _I, _J, _K, _ZERO, _R, _ONE
+  _I, _J, _K, _ZERO, _R, _ONE_Q
 
 Utilities (from quat.utils):
-  to_ndarray, from_ndarray, batch_quat, broadcast_quat_shapes, stack_quat
+  to_ndarray, from_ndarray, from_components, broadcast_quat_shapes, stack_quat
 
 Serialization (from quat.serialization):
   to_json, from_json, to_bytes, from_bytes,
-  as_ndarray, to_scipy_rotation, from_scipy_rotation
+  to_scipy_rotation, from_scipy_rotation
 
 Optimized (from quat.optimized):
   hamilton_einsum, quat_matmul, conjugate_batch,
@@ -31,16 +31,16 @@ Algorithms (from quat.algorithms):
   compute_kernel_matrix, compute_kernel_cross, normalize_kernel,
   solve_ksqmm, predict_ksqmm
 """
-from quat.algebra import _hamilton, _CONJ, _RW
-from quat.core import Quaternion, quat, _I, _J, _K, _ZERO, _R, _ONE
+from quat.algebra import _hamilton, _CONJ, _REAL_LEFT
+from quat.core import Quaternion, quat, _I, _J, _K, _ZERO, _R, _ONE_Q
 from quat.collections import (
     QuatVector, QuatMatrix, QuatTensor,
     dict_to_quat_matrix, dict_to_quat_tensor, labels_to_quat_vector,
 )
-from quat.utils import to_ndarray, from_ndarray, batch_quat, broadcast_quat_shapes, stack_quat
+from quat.utils import to_ndarray, from_ndarray, from_components, broadcast_quat_shapes, stack_quat
 from quat.serialization import (
     to_json, from_json, to_bytes, from_bytes,
-    as_ndarray, to_scipy_rotation, from_scipy_rotation,
+    to_scipy_rotation, from_scipy_rotation,
 )
 from quat.optimized import (
     hamilton_einsum, quat_matmul,
@@ -56,10 +56,10 @@ from quat.algorithms import (
 __all__ = [
     'Quaternion', 'QuatVector', 'QuatMatrix', 'QuatTensor',
     'quat', 'dict_to_quat_matrix', 'dict_to_quat_tensor', 'labels_to_quat_vector',
-    '_hamilton', '_CONJ', '_RW', '_I', '_J', '_K', '_ZERO', '_R', '_ONE',
-    'to_ndarray', 'from_ndarray', 'batch_quat', 'broadcast_quat_shapes', 'stack_quat',
+    '_hamilton', '_CONJ', '_REAL_LEFT', '_I', '_J', '_K', '_ZERO', '_R', '_ONE_Q',
+    'to_ndarray', 'from_ndarray', 'from_components', 'broadcast_quat_shapes', 'stack_quat',
     'to_json', 'from_json', 'to_bytes', 'from_bytes',
-    'as_ndarray', 'to_scipy_rotation', 'from_scipy_rotation',
+    'to_scipy_rotation', 'from_scipy_rotation',
     'hamilton_einsum', 'quat_matmul',
     'conjugate_batch', 'norm_squared_batch', 'normalize_batch',
     'cubic_kernel_matrix', 'cubic_kernel_cross',

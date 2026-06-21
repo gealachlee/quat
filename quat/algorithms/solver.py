@@ -12,7 +12,7 @@ converting the quaternion linear system (K + σ K²) α = -K conj(π) into a
 import numpy as np
 from quat.core import Quaternion
 from quat.collections import QuatMatrix
-from quat.algebra import _hamilton, _CONJ, _RW
+from quat.algebra import _hamilton, _CONJ, _REAL_LEFT
 
 # 1_q = 1 + i + j + k
 _ONE_Q = np.array([1., 1., 1., 1.])
