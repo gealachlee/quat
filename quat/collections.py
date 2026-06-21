@@ -141,8 +141,6 @@ class QuatVector:
         return Quaternion(
             _hamilton(self._data * _CONJ, other._data).sum(axis=0))
 
-    def dot(self, other):
-        return self.inner(other)
 
     def norm(self):
         return float(np.sqrt(self.norm_squared()))

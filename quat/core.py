@@ -251,7 +251,7 @@ class Quaternion:
     def pow(self, t):
         return (t * self.log()).exp()
 
-    def dot(self, other):
+    def re_inner(self, other):
         return float(np.dot(self._data, other._data))
 
     def commutator(self, other):

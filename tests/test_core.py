@@ -185,7 +185,7 @@ class TestQuaternionAlgebra(QuatTestCase):
         from quat.core import Quaternion
         a = Quaternion(1, 2, 3, 4)
         b = Quaternion(4, 3, 2, 1)
-        self.assertAlmostEqual(a.dot(b), 20.0)
+        self.assertAlmostEqual(a.re_inner(b), 20.0)
 
 
 class TestQuaternionRotation(QuatTestCase):
