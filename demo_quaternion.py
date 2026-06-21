@@ -2,9 +2,9 @@
 """Quaternion Algebra Library --- Demo & Usage Examples"""
 
 import sys; sys.path.insert(0, '/sessions/practical-eloquent-bell/mnt/Quaternion')
-from quaternion import (
+from quat import (
     Quaternion, QuatVector, QuatMatrix, QuatTensor,
-    quat, _I, _J, _K, _ZERO, _ONE, _R,
+    quat, _I, _J, _K, _ZERO, _R, _ONE,
 )
 import numpy as np
 
