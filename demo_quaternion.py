@@ -146,5 +146,5 @@ print(f"  bool({Quaternion(1,2,3,4)}):   {bool(Quaternion(1,2,3,4))}")
 print(f"  {Quaternion(1,2,3,4)}.components: {Quaternion(1,2,3,4).components}")
 
 print(f"\n{HR}")
-print(f"  End of demo. Library: quaternion.py")
+print(f"  End of demo. Library: quat")
 print(f"{HR}")
