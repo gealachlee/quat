@@ -454,6 +454,38 @@ class Quaternion:
     def to_array(self) -> np.ndarray:
         return self._data.copy()
 
+    # -- serialization --------------------------------------------------------
+    def to_json(self) -> str:
+        """Serialize to JSON string.
+
+        Example:
+            >>> Quaternion(1,2,3,4).to_json()
+            '{"type": "Quaternion", "data": [1.0, 2.0, 3.0, 4.0]}'
+        """
+        import json
+        return json.dumps({"type": "Quaternion", "data": self._data.tolist()})
+
+    def to_bytes(self) -> bytes:
+        """Serialize to compact binary format."""
+        import struct
+        data = self._data.astype(np.float64)
+        return struct.pack('<i', 0) + data.tobytes()
+
+    @classmethod
+    def from_json(cls, s: str) -> "Quaternion":
+        """Deserialize from JSON string."""
+        import json
+        d = json.loads(s)
+        return cls(np.array(d["data"], dtype=float))
+
+    @classmethod
+    def from_bytes(cls, b: bytes) -> "Quaternion":
+        """Deserialize from binary bytes."""
+        import struct
+        type_id = struct.unpack_from('<i', b, 0)[0]
+        data = np.frombuffer(b[4:], dtype=np.float64)
+        return cls(data)
+
     # -- type conversions ----------------------------------------------------
     def __float__(self) -> float:
         if np.allclose(self._data[1:], 0.):

@@ -193,6 +193,34 @@ class QuatVector:
             raise ValueError("Size mismatch")
         return np.isclose(self._data, other._data, rtol=rtol, atol=atol).all(axis=-1)
 
+    # -- serialization --------------------------------------------------------
+    def to_json(self) -> str:
+        import json
+        return json.dumps({"type": "QuatVector", "data": self._data.tolist()})
+
+    def to_bytes(self) -> bytes:
+        import struct
+        data = self._data.astype(np.float64)
+        shape = np.array(data.shape, dtype=np.int32)
+        return struct.pack('<ii', 1, len(shape)) + shape.tobytes() + data.tobytes()
+
+    @classmethod
+    def from_json(cls, s: str) -> "QuatVector":
+        import json
+        d = json.loads(s)
+        return cls(np.array(d["data"], dtype=float))
+
+    @classmethod
+    def from_bytes(cls, b: bytes) -> "QuatVector":
+        import struct
+        type_id, ndim = struct.unpack_from('<ii', b, 0)
+        offset = 8
+        shape = np.frombuffer(b[offset:offset + ndim * 4], dtype=np.int32)
+        offset += ndim * 4
+        size = int(np.prod(shape))
+        data = np.frombuffer(b[offset:offset + size * 8], dtype=np.float64).reshape(shape)
+        return cls(data)
+
     # -- matrix representation -----------------------------------------------
     def to_complex_matrix(self) -> np.ndarray:
         n = len(self)
@@ -451,6 +479,34 @@ class QuatMatrix:
         if self.shape != other.shape:
             raise ValueError("Shape mismatch")
         return np.isclose(self._data, other._data, rtol=rtol, atol=atol).all(axis=-1)
+
+    # -- serialization --------------------------------------------------------
+    def to_json(self) -> str:
+        import json
+        return json.dumps({"type": "QuatMatrix", "data": self._data.tolist()})
+
+    def to_bytes(self) -> bytes:
+        import struct
+        data = self._data.astype(np.float64)
+        shape = np.array(data.shape, dtype=np.int32)
+        return struct.pack('<ii', 2, len(shape)) + shape.tobytes() + data.tobytes()
+
+    @classmethod
+    def from_json(cls, s: str) -> "QuatMatrix":
+        import json
+        d = json.loads(s)
+        return cls(np.array(d["data"], dtype=float))
+
+    @classmethod
+    def from_bytes(cls, b: bytes) -> "QuatMatrix":
+        import struct
+        type_id, ndim = struct.unpack_from('<ii', b, 0)
+        offset = 8
+        shape = np.frombuffer(b[offset:offset + ndim * 4], dtype=np.int32)
+        offset += ndim * 4
+        size = int(np.prod(shape))
+        data = np.frombuffer(b[offset:offset + size * 8], dtype=np.float64).reshape(shape)
+        return cls(data)
 
     # -- matrix representations ----------------------------------------------
     def to_complex_matrix(self) -> np.ndarray:
@@ -728,6 +784,34 @@ class QuatTensor:
         if self.shape != other.shape:
             raise ValueError("Shape mismatch")
         return np.isclose(self._data, other._data, rtol=rtol, atol=atol).all(axis=-1)
+
+    # -- serialization --------------------------------------------------------
+    def to_json(self) -> str:
+        import json
+        return json.dumps({"type": "QuatTensor", "data": self._data.tolist()})
+
+    def to_bytes(self) -> bytes:
+        import struct
+        data = self._data.astype(np.float64)
+        shape = np.array(data.shape, dtype=np.int32)
+        return struct.pack('<ii', 3, len(shape)) + shape.tobytes() + data.tobytes()
+
+    @classmethod
+    def from_json(cls, s: str) -> "QuatTensor":
+        import json
+        d = json.loads(s)
+        return cls(np.array(d["data"], dtype=float))
+
+    @classmethod
+    def from_bytes(cls, b: bytes) -> "QuatTensor":
+        import struct
+        type_id, ndim = struct.unpack_from('<ii', b, 0)
+        offset = 8
+        shape = np.frombuffer(b[offset:offset + ndim * 4], dtype=np.int32)
+        offset += ndim * 4
+        size = int(np.prod(shape))
+        data = np.frombuffer(b[offset:offset + size * 8], dtype=np.float64).reshape(shape)
+        return cls(data)
 
     # -- unfolding -----------------------------------------------------------
     def unfold(self, mode: int) -> QuatMatrix:
