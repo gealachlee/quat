@@ -27,11 +27,6 @@ Optimized (from quat.optimized):
   hamilton_einsum, quat_matmul, conjugate_batch,
   norm_squared_batch, normalize_batch
 
-Algorithms (from quat.algorithms):
-  cubic_kernel_matrix, gaussian_kernel_matrix,
-  compute_kernel_matrix, compute_kernel_cross, normalize_kernel,
-  solve_ksqmm, predict_ksqmm
-
 Linear algebra (from quat.linalg):
   svd, rank, condition_number, pseudo_inverse,
   trace, det, norm, solve
@@ -52,12 +47,6 @@ from quat.optimized import (
     hamilton_einsum, quat_matmul,
     conjugate_batch, norm_squared_batch, normalize_batch,
 )
-from quat.algorithms import (
-    cubic_kernel_matrix, cubic_kernel_cross,
-    gaussian_kernel_matrix, gaussian_kernel_cross,
-    normalize_kernel, compute_kernel_matrix, compute_kernel_cross,
-    solve_ksqmm, predict_ksqmm,
-)
 from quat.linalg import (
     svd, rank, condition_number, pseudo_inverse,
     trace, det, norm, solve,
@@ -73,10 +62,6 @@ __all__ = [
     'to_scipy_rotation', 'from_scipy_rotation',
     'hamilton_einsum', 'quat_matmul',
     'conjugate_batch', 'norm_squared_batch', 'normalize_batch',
-    'cubic_kernel_matrix', 'cubic_kernel_cross',
-    'gaussian_kernel_matrix', 'gaussian_kernel_cross',
-    'normalize_kernel', 'compute_kernel_matrix', 'compute_kernel_cross',
-    'solve_ksqmm', 'predict_ksqmm',
     'svd', 'rank', 'condition_number', 'pseudo_inverse',
     'trace', 'det', 'norm', 'solve',
 ]
