@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Data conversion helpers and numeric validation for quaternion types."""
 from __future__ import annotations
 from typing import Union

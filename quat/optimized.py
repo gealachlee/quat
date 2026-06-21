@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Numpy-vectorized optimizations for quaternion operations.
 
 All functions produce identical results to the standard implementations

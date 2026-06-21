@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Quaternion linear algebra — SVD, rank, condition number, pseudo-inverse."""
 from __future__ import annotations
 from typing import Optional, Tuple

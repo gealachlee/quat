@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Low-level quaternion algebra — constants, Hamilton product, real-matrix tensor."""
 from __future__ import annotations
 import numpy as np

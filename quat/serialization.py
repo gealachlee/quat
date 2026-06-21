@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Serialization and interop — thin wrappers over quaternion object methods.
 
 The primary API is via instance and class methods on the quaternion types:

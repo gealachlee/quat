@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Quaternion collection types — QuatVector, QuatMatrix, QuatTensor."""
 from __future__ import annotations
 

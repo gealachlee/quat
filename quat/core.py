@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Quaternion class — single quaternion value type."""
 from __future__ import annotations
 
