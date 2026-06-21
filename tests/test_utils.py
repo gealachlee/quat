@@ -105,3 +105,15 @@ class TestStackQuat(QuatTestCase):
         v = stack_quat([q1, q2, q3])
         self.assertIsInstance(v, QuatVector)
         self.assertEqual(v.shape, (3,))
+
+
+class TestBroadcastHelpers(QuatTestCase):
+    def test_broadcast_shapes(self):
+        from quat.utils import broadcast_quat_shapes
+        shapes = broadcast_quat_shapes((3, 1), (1, 4))
+        self.assertEqual(shapes, (3, 4))
+
+    def test_broadcast_shapes_identical(self):
+        from quat.utils import broadcast_quat_shapes
+        shapes = broadcast_quat_shapes((2, 3), (2, 3))
+        self.assertEqual(shapes, (2, 3))
