@@ -23,12 +23,12 @@ class TestQuatVectorConstruction(QuatTestCase):
         v = QuatVector.zeros(3)
         self.assertEqual(len(v), 3)
 
-    def test_from_real_matrix(self):
+    def test_from_real_matrix_left(self):
         from quat.collections import QuatVector
         from quat.core import Quaternion
         q = Quaternion(1, 2, 3, 4)
-        M = q.to_real_matrix()
-        v = QuatVector.from_real_matrix(M)
+        M = q.to_real_matrix_left()
+        v = QuatVector.from_real_matrix_left(M)
         self.assertEqual(len(v), 1)
 
 
@@ -96,12 +96,12 @@ class TestQuatMatrixConstruction(QuatTestCase):
         Z = QuatMatrix.zeros(2, 3)
         self.assertEqual(Z.shape, (2, 3))
 
-    def test_from_real_matrix(self):
+    def test_from_real_matrix_left(self):
         from quat.collections import QuatMatrix
         data = np.random.randn(2, 2, 4)
         M = QuatMatrix(data)
-        R = M.to_real_matrix()
-        M2 = QuatMatrix.from_real_matrix(R)
+        R = M.to_real_matrix_left()
+        M2 = QuatMatrix.from_real_matrix_left(R)
         self.assertEqual(M.shape, M2.shape)
         self.assertTrue(np.allclose(M.to_array(), M2.to_array()))
 

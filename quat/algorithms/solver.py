@@ -74,7 +74,7 @@ def _quat_conj(Q):
 
 def _kernel_real_matrix(K):
     """Build 4N×4N real representation of quaternion kernel matrix K (N,N,4)."""
-    return QuatMatrix(K).to_real_matrix()
+    return QuatMatrix(K).to_real_matrix_left()
 
 
 # ---------------------------------------------------------------------------

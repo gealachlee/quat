@@ -207,14 +207,14 @@ class TestQuaternionMatrixRepresentations(QuatTestCase):
     def test_real_matrix(self):
         from quat.core import Quaternion
         q = Quaternion(1, 2, 3, 4)
-        M = q.to_real_matrix()
+        M = q.to_real_matrix_left()
         self.assertEqual(M.shape, (4, 4))
         self.assertTrue(np.allclose(M.T @ M, q.norm_squared() * np.eye(4)))
 
     def test_real_roundtrip(self):
         from quat.core import Quaternion
         q = Quaternion(1, 2, 3, 4)
-        self.assertEqual(q, Quaternion.from_real_matrix(q.to_real_matrix()))
+        self.assertEqual(q, Quaternion.from_real_matrix_left(q.to_real_matrix_left()))
 
     def test_to_array(self):
         from quat.core import Quaternion

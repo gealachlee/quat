@@ -280,7 +280,7 @@ class Quaternion:
         d = (M[0, 1].imag + M[1, 0].imag) / 2.
         return cls(a.real, b.real, c.real, d.real)
 
-    def to_real_matrix(self):
+    def to_real_matrix_left(self):
         a, b, c, d = self._data
         return np.array([[a, -b, -c, -d],
                          [b,  a, -d,  c],
@@ -295,7 +295,7 @@ class Quaternion:
                          [d,  c, -b,  a]])
 
     @classmethod
-    def from_real_matrix(cls, M):
+    def from_real_matrix_left(cls, M):
         M = np.asarray(M)
         if M.shape != (4, 4):
             raise ValueError(f"Expected (4,4) matrix, got {M.shape}")

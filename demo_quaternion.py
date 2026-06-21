@@ -91,7 +91,7 @@ print(f"  det(M) = {np.linalg.det(M):.6f}  (= |q|^2 = {q.norm_squared()})")
 
 # 9. Real representation
 hdr("9. Real Representation (4x4)")
-L = q.to_real_matrix()
+L = q.to_real_matrix_left()
 print(f"  L^T L = |q|^2 I_4: {np.allclose(L.T @ L, q.norm_squared() * np.eye(4))}")
 
 # 10. QuatVector

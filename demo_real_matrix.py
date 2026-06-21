@@ -36,7 +36,7 @@ print(Q._data)
 print()
 
 # 计算实表示矩阵 R(Q): 8×8
-R = Q.to_real_matrix()
+R = Q.to_real_matrix_left()
 
 print("=" * 60)
 print("实表示矩阵 R(Q)  (8×8):")
