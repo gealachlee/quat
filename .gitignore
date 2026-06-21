@@ -1,6 +1,6 @@
 __pycache__/
 *.pyc
 *.pyo
-ksqmm/
+../ksqmm/
 docs/
 data/
