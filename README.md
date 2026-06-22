@@ -4,7 +4,8 @@
 
 Pure-Python quaternion algebra library built on numpy.  Provides scalar
 quaternions, vector/matrix/tensor collections, linear algebra (SVD, pseudo-inverse),
-serialization, and optimized einsum kernels — all respecting quaternion arithmetic
+serialization, interpolation (SLERP/squad), Euler-angle conversion, random
+generators, and optimized einsum kernels — all respecting quaternion arithmetic
 (Hamilton product, non-commutativity).
 
 ## Install
@@ -46,9 +47,30 @@ v = (1.0, 0.0, 0.0)
 vr = u.rotate_vector(v)                  # rotate (1,0,0) 90° around z
 print(vr)                                # ≈ (0, 1, 0)
 
+# -- axis-angle roundtrip -----------------------------------------
+axis, angle = u.to_axis_angle()          # quaternion → (axis, angle)
+
+# -- Euler angles -------------------------------------------------
+q_euler = Quaternion.from_euler((0.1, 0.2, 0.3))           # intrinsic ZYX
+angles = q_euler.to_euler('zyx')                           # roundtrip
+q_xzx = Quaternion.from_euler((0.3, 0.5, 0.7), 'zxz')    # proper Euler
+
+# -- interpolation -------------------------------------------------
+from quat import slerp, squad, random_unit_quat
+q0, q1 = Quaternion(1,0,0,0), Quaternion(0,1,0,0)
+mid = slerp(q0, q1, 0.5)               # spherical linear interpolation
+q2, q3 = random_unit_quat(), random_unit_quat()
+curve = squad(q0, q1, q2, q3, 0.75)    # cubic spline interpolation
+
+# -- random generation ---------------------------------------------
+from quat.random import random_quat, random_quat_matrix
+q_rand = random_quat(seed=42)           # reproducible
+M_rand = random_quat_matrix(3, 4, 42)   # 3×4 random quaternion matrix
+
 # -- collections --------------------------------------------------
 v = QuatVector([Quaternion(1,0,0,0), Quaternion(0,1,0,0), Quaternion(0,0,1,0)])
 print(v.real, v.i, v.j, v.k)             # component arrays
+print(v.data.shape)                      # (3, 4) — underlying ndarray
 
 A = QuatMatrix.eye(3)
 B = QuatMatrix(np.random.randn(3, 4, 4))
@@ -79,15 +101,17 @@ print(_I * _J * _K)                      # -1 (Hamilton's ijk = -1)
 
 ### `Quaternion` — scalar quaternion
 
-| constructors | `zero()`, `one_q()`, `from_axis_angle()`, `from_complex_matrix()`, `from_real_matrix_left()` |
+| category | methods / properties |
 |---|---|
-| **components** | `.r`, `.i`, `.j`, `.k`, `.real`, `.imag`, `.components` |
+| **constructors** | `zero()`, `one_q()`, `from_axis_angle()`, `from_euler()`, `from_complex_matrix()`, `from_real_matrix_left()` |
+| **components** | `.r`, `.i`, `.j`, `.k`, `.real`, `.imag`, `.components`, `.data` |
 | **arithmetic** | `+`, `-`, `*`, `/`, `-q` |
 | **algebra** | `.conjugate()`, `.norm()`, `.normalize()`, `.inverse()`, `.exp()`, `.log()`, `.pow(t)`, `.re_inner(q)`, `.commutator(q)` |
+| **rotation** | `.rotate_vector(v)`, `.to_axis_angle()`, `.to_euler(seq='zyx')` |
 | **validation** | `.isnan()`, `.isinf()`, `.isfinite()`, `.isclose(q)` |
-| **rotation** | `.rotate_vector(v)` |
 | **serialization** | `.to_json()`, `.from_json(s)`, `.to_bytes()`, `.from_bytes(b)` |
 | **matrix reps** | `.to_complex_matrix()`, `.to_real_matrix_left()`, `.to_real_matrix_right()` |
+| **conversion** | `__float__`, `__int__`, `__complex__`, `__bool__`, `__abs__`, `__array__` |
 
 ### `QuatVector` / `QuatMatrix` / `QuatTensor` — collections
 
@@ -96,7 +120,23 @@ print(_I * _J * _K)                      # -1 (Hamilton's ijk = -1)
 | dim   | 1          | 2          | 3          |
 | shape | `(n,)`     | `(m,n)`    | `(p,q,r)`  |
 | construct | `zeros`, `ones` | `zeros`, `eye` | `zeros` |
+| access | `.data`, `.real/.i/.j/.k` | `.data`, `.real/.i/.j/.k`, `.row(i)`, `.col(j)` | `.data`, `.real/.i/.j/.k` |
 | algebra | `.inner(v)`, `.norm()` | `.norm()`, `.T`, `.H`, `.conjugate()` | `.inner(T)`, `.norm()`, `.unfold(mode)`, `.mode_n_product(A)` |
+
+### `quat.random` — random generators
+
+`random_quat(rng)`, `random_unit_quat(rng)`, `random_quat_vector(n, rng)`,
+`random_quat_matrix(m, n, rng)`, `random_quat_tensor(p, q, r, rng)`
+
+All accept a NumPy `Generator`, seed integer, or `None`.
+
+### `quat.interpolate` — interpolation
+
+`slerp(q0, q1, t)` — spherical linear interpolation (takes shortest arc).
+
+`slerp_vector(v0, v1, t)` — batch SLERP for `QuatVector` pairs.
+
+`squad(q0, q1, q2, q3, t)` — cubic spline (Shoemake 1987) through 4 keyframes.
 
 ### `quat.linalg` — linear algebra
 
@@ -116,3 +156,4 @@ print(_I * _J * _K)                      # -1 (Hamilton's ijk = -1)
 `_CONJ` — conjugate mask `[1, -1, -1, -1]`.
 `_REAL_LEFT` — `(4,4,4)` tensor mapping a quaternion to its 4×4 left-regular
 real representation.
+`_HAMILTON_TENSOR` — `(4,4,4)` tensor encoding the Hamilton multiplication rules.
