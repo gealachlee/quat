@@ -288,6 +288,71 @@ class TestQuaternionEuler(QuatTestCase):
             Quaternion.from_euler([0, 0, 0], 'xwz')
 
 
+class TestQuaternionNumPy(QuatTestCase):
+    def test_np_add_preserves_type(self):
+        from quat.core import Quaternion
+        import numpy as np
+        q1 = Quaternion(1, 2, 3, 4)
+        q2 = Quaternion(5, 6, 7, 8)
+        r = np.add(q1, q2)
+        self.assertIsInstance(r, Quaternion)
+        self.assertTrue(np.array_equal(r._data, [6., 8., 10., 12.]))
+
+    def test_np_multiply_scalar(self):
+        from quat.core import Quaternion
+        import numpy as np
+        q = Quaternion(1, 2, 3, 4)
+        r = np.multiply(3.0, q)
+        self.assertIsInstance(r, Quaternion)
+        self.assertTrue(np.array_equal(r._data, [3., 6., 9., 12.]))
+
+    def test_np_multiply_quat(self):
+        from quat.core import Quaternion
+        import numpy as np
+        i = Quaternion(0, 1, 0, 0)
+        j = Quaternion(0, 0, 1, 0)
+        r = np.multiply(i, j)
+        self.assertIsInstance(r, Quaternion)
+        self.assertTrue(np.array_equal(r._data, Quaternion(0, 0, 0, 1)._data))
+
+    def test_np_negative(self):
+        from quat.core import Quaternion
+        import numpy as np
+        q = Quaternion(1, -2, 3, -4)
+        r = np.negative(q)
+        self.assertIsInstance(r, Quaternion)
+        self.assertTrue(np.array_equal(r._data, [-1., 2., -3., 4.]))
+
+    def test_np_absolute(self):
+        from quat.core import Quaternion
+        import numpy as np
+        q = Quaternion(3, 4, 0, 0)
+        r = np.absolute(q)
+        self.assertAlmostEqual(r, 5.0)
+
+    def test_np_conjugate(self):
+        from quat.core import Quaternion
+        import numpy as np
+        q = Quaternion(1, 2, 3, 4)
+        r = np.conjugate(q)
+        self.assertIsInstance(r, Quaternion)
+        self.assertTrue(np.array_equal(r._data, [1., -2., -3., -4.]))
+
+    def test_np_negative_positive(self):
+        from quat.core import Quaternion
+        import numpy as np
+        q = Quaternion(1, 2, 3, 4)
+        self.assertTrue(np.array_equal(np.positive(q)._data, q._data))
+
+    def test_np_array_creation(self):
+        from quat.core import Quaternion
+        import numpy as np
+        q = Quaternion(1, 2, 3, 4)
+        arr = np.array(q)
+        self.assertEqual(arr.shape, (4,))
+        self.assertTrue(np.array_equal(arr, [1., 2., 3., 4.]))
+
+
 class TestQuaternionMatrixRepresentations(QuatTestCase):
     def test_complex_roundtrip(self):
         from quat.core import Quaternion

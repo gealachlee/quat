@@ -261,3 +261,43 @@ class TestModuleFunctions(QuatTestCase):
         y = np.array([0, 1])
         v = labels_to_quat_vector(y, binary=True)
         self.assertTrue(np.allclose(v.real, [-1., 1.]))
+
+
+class TestCollectionsNumPy(QuatTestCase):
+    def test_np_add_vector(self):
+        from quat.collections import QuatVector
+        import numpy as np
+        v = QuatVector(np.ones((3, 4)))
+        r = np.add(v, v)
+        self.assertIsInstance(r, QuatVector)
+        self.assertTrue(np.allclose(r.to_array(), v.to_array() * 2))
+
+    def test_np_negative_vector(self):
+        from quat.collections import QuatVector
+        import numpy as np
+        v = QuatVector(np.ones((3, 4)))
+        r = np.negative(v)
+        self.assertIsInstance(r, QuatVector)
+        self.assertTrue(np.allclose(r.to_array(), -v.to_array()))
+
+    def test_np_add_matrix(self):
+        from quat.collections import QuatMatrix
+        import numpy as np
+        M = QuatMatrix.eye(2)
+        r = np.add(M, M)
+        self.assertIsInstance(r, QuatMatrix)
+        self.assertTrue(np.allclose(r.to_array(), M.to_array() * 2))
+
+    def test_np_multiply_matrix_scalar(self):
+        from quat.collections import QuatMatrix
+        import numpy as np
+        M = QuatMatrix.eye(2)
+        r = np.multiply(3.0, M)
+        self.assertIsInstance(r, QuatMatrix)
+
+    def test_np_add_tensor(self):
+        from quat.collections import QuatTensor
+        import numpy as np
+        T = QuatTensor.zeros(2, 3, 4)
+        r = np.add(T, T)
+        self.assertIsInstance(r, QuatTensor)
