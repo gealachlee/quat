@@ -264,6 +264,10 @@ class Quaternion:
         d = self._data
         return (d[0].item(), d[1].item(), d[2].item(), d[3].item())
 
+    @property
+    def shape(self) -> Tuple[()]:
+        return ()
+
     def __len__(self) -> int:
         return 4
 
