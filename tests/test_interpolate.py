@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Tests for quat.interpolate — SLERP and squad."""
 import unittest
 import numpy as np

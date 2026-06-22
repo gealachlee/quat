@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Tests for quat.algebra module."""
 import unittest
 import numpy as np

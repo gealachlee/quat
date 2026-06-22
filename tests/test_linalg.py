@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Tests for quat.linalg — SVD, rank, condition number, etc."""
 import unittest
 import numpy as np

@@ -1,5 +1,8 @@
-"""Random quaternion generators."""
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
 
+"""Random quaternion generators."""
 import numpy as np
 from quat.core import Quaternion
 from quat.collections import QuatVector, QuatMatrix, QuatTensor

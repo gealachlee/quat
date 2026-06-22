@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Tests for quat.optimized — correctness vs standard implementations."""
 import unittest
 import numpy as np

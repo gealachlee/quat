@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Tests for quat.serialization — JSON, binary, scipy interop."""
 import unittest
 import json

@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Tests for QuatVector, QuatMatrix, QuatTensor classes."""
 import unittest
 import numpy as np

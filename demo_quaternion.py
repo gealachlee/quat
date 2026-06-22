@@ -1,3 +1,6 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
 #!/usr/bin/env python3
 """Quaternion Algebra Library --- Demo & Usage Examples"""
 

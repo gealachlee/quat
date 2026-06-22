@@ -1,3 +1,7 @@
+# =========================================================================
+#  LLM-generated code.  See README.md for full disclosure.
+# =========================================================================
+
 """Quaternion interpolation — SLERP and related utilities."""
 
 import numpy as np
