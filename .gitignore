@@ -4,3 +4,4 @@ __pycache__/
 ../ksqmm/
 docs/
 data/
+quat.egg-info/

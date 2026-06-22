@@ -34,6 +34,13 @@ Optimized (from quat.optimized):
 Linear algebra (from quat.linalg):
   svd, rank, condition_number, pseudo_inverse,
   trace, det, norm, solve
+
+Random (from quat.random):
+  random_quat, random_unit_quat, random_quat_vector,
+  random_quat_matrix, random_quat_tensor
+
+Interpolation (from quat.interpolate):
+  slerp, slerp_vector
 """
 from quat.algebra import _hamilton, _CONJ, _REAL_LEFT
 from quat.core import Quaternion, quat, _I, _J, _K, _ZERO, _R, _ONE_Q
@@ -55,6 +62,11 @@ from quat.linalg import (
     svd, rank, condition_number, pseudo_inverse,
     trace, det, norm, solve,
 )
+from quat.random import (
+    random_quat, random_unit_quat, random_quat_vector,
+    random_quat_matrix, random_quat_tensor,
+)
+from quat.interpolate import slerp, slerp_vector, squad
 
 __all__ = [
     'Quaternion', 'QuatVector', 'QuatMatrix', 'QuatTensor',
@@ -68,4 +80,7 @@ __all__ = [
     'conjugate_batch', 'norm_squared_batch', 'normalize_batch',
     'svd', 'rank', 'condition_number', 'pseudo_inverse',
     'trace', 'det', 'norm', 'solve',
+    'random_quat', 'random_unit_quat', 'random_quat_vector',
+    'random_quat_matrix', 'random_quat_tensor',
+    'slerp', 'slerp_vector', 'squad',
 ]

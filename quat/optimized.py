@@ -10,6 +10,7 @@ but use numpy einsum and broadcasting for efficiency.
 from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
+from quat.algebra import _HAMILTON_TENSOR
 
 
 def hamilton_einsum(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
@@ -29,19 +30,7 @@ def hamilton_einsum(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
         >>> np.allclose(_hamilton(p, q), hamilton_einsum(p, q))
         True
     """
-    H = np.zeros((4, 4, 4))
-    H[0, 0, 0] = 1;    H[0, 1, 1] = -1;   H[0, 2, 2] = -1;   H[0, 3, 3] = -1
-    H[1, 0, 1] = 1;    H[1, 1, 0] = 1;    H[1, 2, 3] = 1;    H[1, 3, 2] = -1
-    H[2, 0, 2] = 1;    H[2, 1, 3] = -1;   H[2, 2, 0] = 1;    H[2, 3, 1] = 1
-    H[3, 0, 3] = 1;    H[3, 1, 2] = 1;    H[3, 2, 1] = -1;   H[3, 3, 0] = 1
-    return np.einsum('rck,...c,...k->...r', H, p, q, optimize=True)
-
-
-_HAMILTON_TENSOR = np.zeros((4, 4, 4))
-_HAMILTON_TENSOR[0, 0, 0] = 1;    _HAMILTON_TENSOR[0, 1, 1] = -1;   _HAMILTON_TENSOR[0, 2, 2] = -1;   _HAMILTON_TENSOR[0, 3, 3] = -1
-_HAMILTON_TENSOR[1, 0, 1] = 1;    _HAMILTON_TENSOR[1, 1, 0] = 1;    _HAMILTON_TENSOR[1, 2, 3] = 1;    _HAMILTON_TENSOR[1, 3, 2] = -1
-_HAMILTON_TENSOR[2, 0, 2] = 1;    _HAMILTON_TENSOR[2, 1, 3] = -1;   _HAMILTON_TENSOR[2, 2, 0] = 1;    _HAMILTON_TENSOR[2, 3, 1] = 1
-_HAMILTON_TENSOR[3, 0, 3] = 1;    _HAMILTON_TENSOR[3, 1, 2] = 1;    _HAMILTON_TENSOR[3, 2, 1] = -1;   _HAMILTON_TENSOR[3, 3, 0] = 1
+    return np.einsum('rck,...c,...k->...r', _HAMILTON_TENSOR, p, q, optimize=True)
 
 
 def quat_matmul(A_data: npt.NDArray, B_data: npt.NDArray) -> npt.NDArray:
@@ -104,5 +93,6 @@ def normalize_batch(data: npt.NDArray) -> npt.NDArray:
         array([1.])
     """
     norms = np.sqrt((data * data).sum(axis=-1, keepdims=True))
-    norms = np.where(norms == 0, 1., norms)
+    if np.any(norms == 0):
+        raise ZeroDivisionError("Cannot normalize zero-norm quaternion in batch")
     return data / norms

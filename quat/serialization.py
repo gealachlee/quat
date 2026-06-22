@@ -16,6 +16,8 @@ Standalone functions below delegate to these methods and accept
 Quaternion, QuatVector, QuatMatrix, or QuatTensor.
 """
 from __future__ import annotations
+import json as _json
+import struct as _struct
 import numpy as np
 from quat.core import Quaternion
 from quat.collections import QuatVector, QuatMatrix, QuatTensor
@@ -28,8 +30,7 @@ def to_json(q: Quaternion | QuatVector | QuatMatrix | QuatTensor) -> str:
 
 def from_json(s: str) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
     """Deserialize from JSON.  Infers type from the stored type name."""
-    import json
-    d = json.loads(s)
+    d = _json.loads(s)
     cls_map = {
         "Quaternion": Quaternion,
         "QuatVector": QuatVector,
@@ -47,8 +48,7 @@ def to_bytes(q: Quaternion | QuatVector | QuatMatrix | QuatTensor) -> bytes:
 
 def from_bytes(b: bytes) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
     """Deserialize from binary.  Reads type_id from header bytes."""
-    import struct
-    type_id = struct.unpack_from('<i', b, 0)[0]
+    type_id = _struct.unpack_from('<i', b, 0)[0]
     cls_map = {
         0: Quaternion,
         1: QuatVector,

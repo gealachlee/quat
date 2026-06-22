@@ -5,10 +5,68 @@
 """Quaternion class — single quaternion value type."""
 from __future__ import annotations
 
+import json as _json
+import struct as _struct
 import numpy as np
 from typing import Tuple, List, Iterator
 from numbers import Real, Complex
 from quat.algebra import _hamilton, _CONJ
+
+
+def _quat_to_rotmat(q_data: np.ndarray) -> np.ndarray:
+    """Convert quaternion data (4,) to a 3x3 rotation matrix."""
+    w, x, y, z = q_data
+    return np.array([
+        [1 - 2*y*y - 2*z*z,     2*x*y - 2*w*z,         2*x*z + 2*w*y],
+        [2*x*y + 2*w*z,         1 - 2*x*x - 2*z*z,     2*y*z - 2*w*x],
+        [2*x*z - 2*w*y,         2*y*z + 2*w*x,         1 - 2*x*x - 2*y*y],
+    ])
+
+
+def _euler_from_rotmat(R: np.ndarray, seq: str) -> np.ndarray:
+    """Extract intrinsic Euler angles from rotation matrix.
+
+    Supports all 6 Tait-Bryan (e.g. 'zyx') and 6 proper Euler (e.g. 'zxz') sequences.
+    """
+    i = 'xyz'.index(seq[0])
+    j = 'xyz'.index(seq[1])
+    k = 'xyz'.index(seq[2])
+    if i == k:
+        return _euler_proper(R, i, j, k)
+    return _euler_tait_bryan(R, i, j, k)
+
+
+def _euler_tait_bryan(R: np.ndarray, i: int, j: int, k: int) -> np.ndarray:
+    parity = 1 if (i, j, k) in ((0, 1, 2), (1, 2, 0), (2, 0, 1)) else -1
+    s2 = parity * R[i, k]
+    theta_j = float(np.arcsin(np.clip(s2, -1., 1.)))
+    cos_j = float(np.cos(theta_j))
+    if abs(cos_j) > 1e-10:
+        theta_i = float(np.arctan2(-parity * R[j, k], R[k, k]))
+        theta_k = float(np.arctan2(-parity * R[i, j], R[i, i]))
+    else:
+        theta_i = float(np.arctan2(parity * R[k, j], R[j, j]))
+        theta_k = 0.
+    return np.array([theta_i, theta_j, theta_k])
+
+
+def _euler_proper(R: np.ndarray, i: int, j: int, k: int) -> np.ndarray:
+    even = (i, j, k) in ((0, 1, 0), (1, 2, 1), (2, 0, 2))
+    lft = 3 - i - j
+    c2 = R[i, i]
+    s2 = np.hypot(R[i, j], R[i, lft])
+    theta_j = float(np.arctan2(s2, c2))
+    if s2 > 1e-10:
+        if even:
+            theta_i = float(np.arctan2(R[j, i], -R[lft, i]))
+            theta_k = float(np.arctan2(R[i, j],  R[i, lft]))
+        else:
+            theta_i = float(np.arctan2(R[j, i],  R[lft, i]))
+            theta_k = float(np.arctan2(R[i, j], -R[i, lft]))
+    else:
+        theta_i = float(np.arctan2(-R[j, lft], R[j, j]))
+        theta_k = 0.
+    return np.array([theta_i, theta_j, theta_k])
 
 
 class Quaternion:
@@ -92,6 +150,90 @@ class Quaternion:
         s = np.sin(half)
         return cls(np.cos(half), s*axis[0], s*axis[1], s*axis[2])
 
+    def to_axis_angle(self) -> Tuple[np.ndarray, float]:
+        """Convert unit quaternion to axis-angle representation.
+
+        Returns (axis, angle) where axis is a unit 3-vector and angle is
+        in [0, pi] radians.
+
+        Example:
+            >>> q = Quaternion.from_axis_angle((0, 0, 1), 1.2)
+            >>> axis, angle = q.to_axis_angle()
+            >>> abs(np.linalg.norm(axis) - 1) < 1e-10
+            True
+            >>> abs(angle - 1.2) < 1e-10
+            True
+        """
+        a, b, c, d = self._data
+        v_norm_sq = b*b + c*c + d*d
+        if v_norm_sq < 1e-30:
+            return np.array([1., 0., 0.]), 0.0
+        v_norm = np.sqrt(v_norm_sq)
+        angle = 2. * np.arctan2(v_norm, a)
+        s = 1. / v_norm if v_norm > 0 else 0.
+        return np.array([b * s, c * s, d * s]), float(angle)
+
+    # -- Euler angles ---------------------------------------------------------
+    @classmethod
+    def from_euler(cls, angles, seq: str = 'zyx', intrinsic: bool = True) -> Quaternion:
+        """Construct a quaternion from Euler angles.
+
+        Args:
+            angles: (roll, pitch, yaw) or (phi, theta, psi) in radians.
+            seq: Rotation sequence, e.g. ``'zyx'``, ``'xyz'``, ``'zxz'``.
+            intrinsic: If True (default), rotate about moving axes;
+                       if False, rotate about fixed axes.
+
+        Returns:
+            Unit quaternion representing the composed rotation.
+
+        Example:
+            >>> q = Quaternion.from_euler((0, 0, np.pi/2))
+            >>> q  # yaw 90° about z
+            Quaternion(0.707..., 0.0, 0.0, 0.707...)
+        """
+        angles = np.asarray(angles, dtype=float)
+        if angles.shape != (3,):
+            raise ValueError(f"Expected 3 angles, got {angles.shape}")
+        if len(seq) != 3:
+            raise ValueError(f"seq must be 3 chars, got {seq!r}")
+        if not all(c in 'xyz' for c in seq):
+            raise ValueError(f"seq must contain only 'x','y','z', got {seq!r}")
+        q = Quaternion(1, 0, 0, 0)
+        order = seq if intrinsic else seq[::-1]
+        for axis, angle in zip(order, angles if intrinsic else angles[::-1]):
+            axis_vec = {'x': np.array([1., 0., 0.]),
+                        'y': np.array([0., 1., 0.]),
+                        'z': np.array([0., 0., 1.])}[axis]
+            q = q * cls.from_axis_angle(axis_vec, float(angle))
+        return q
+
+    def to_euler(self, seq: str = 'zyx', intrinsic: bool = True) -> np.ndarray:
+        """Extract Euler angles from a unit quaternion.
+
+        Uses the rotation sequence *seq* with the specified convention.
+
+        Args:
+            seq: Rotation sequence, e.g. ``'zyx'``.
+            intrinsic: Same convention as *from_euler*.
+
+        Returns:
+            ndarray of 3 angles in radians.
+
+        Example:
+            >>> q = Quaternion.from_euler((0.1, 0.2, 0.3))
+            >>> angles = q.to_euler()
+            >>> np.allclose(angles, [0.1, 0.2, 0.3])
+            True
+        """
+        if intrinsic:
+            R = _quat_to_rotmat(self._data)
+            return _euler_from_rotmat(R, seq)
+        else:
+            rev_seq = seq[::-1]
+            R = _quat_to_rotmat(self._data)
+            return _euler_from_rotmat(R, rev_seq)[::-1]
+
     # -- accessors -----------------------------------------------------------
     @property
     def r(self) -> float:
@@ -115,7 +257,7 @@ class Quaternion:
 
     @property
     def imag(self) -> np.ndarray:
-        return self._data[1:4].copy()
+        return self._data[1:4]
 
     @property
     def components(self) -> Tuple[float, float, float, float]:
@@ -155,13 +297,14 @@ class Quaternion:
     # -- equality / hash -----------------------------------------------------
     def __eq__(self, other) -> bool:
         if isinstance(other, Quaternion):
-            return np.allclose(self._data, other._data)
+            return bool(np.array_equal(self._data, other._data))
         if isinstance(other, (Real, Complex)):
-            return self == Quaternion(other)
+            rhs = Quaternion(other)
+            return bool(np.array_equal(self._data, rhs._data))
         return NotImplemented
 
     def __hash__(self) -> int:
-        return hash(tuple(round(v, 12) for v in self.components))
+        return hash(tuple(float(v) for v in self.components))
 
     # -- arithmetic ----------------------------------------------------------
     def __add__(self, other) -> Quaternion:
@@ -372,20 +515,19 @@ class Quaternion:
 
     # -- rotation ------------------------------------------------------------
     def rotate_vector(self, v) -> np.ndarray:
-        """
-        Rotate a 3D vector by this quaternion: imag(q * (0, v) * q*).
-
-        Example
-        -------
-        >>> q = Quaternion.from_axis_angle((0, 0, 1), np.pi / 2)
-        >>> v = (1.0, 0.0, 0.0)
-        >>> vr = q.rotate_vector(v)
-        >>> vr  # rotated to y-axis
-        array([0., 1., 0.])
-        """
-        qv = Quaternion(0., float(v[0]), float(v[1]), float(v[2]))
-        qc = self.conjugate()
-        return (self * qv * qc).imag
+        a, b, c, d = self._data
+        x, y, z = float(v[0]), float(v[1]), float(v[2])
+        u_dot_v = b*x + c*y + d*z
+        u2 = b*b + c*c + d*d
+        scale = a*a - u2
+        cx = c*z - d*y
+        cy = d*x - b*z
+        cz = b*y - c*x
+        return np.array([
+            2*u_dot_v*b + scale*x + 2*a*cx,
+            2*u_dot_v*c + scale*y + 2*a*cy,
+            2*u_dot_v*d + scale*z + 2*a*cz,
+        ])
 
     # -- matrix representations ----------------------------------------------
     def to_complex_matrix(self) -> np.ndarray:
@@ -455,6 +597,11 @@ class Quaternion:
             raise ValueError(f"Expected (4,4) matrix, got {M.shape}")
         return cls(M[0, 0], M[1, 0], M[2, 0], M[3, 0])
 
+    @property
+    def data(self) -> np.ndarray:
+        """Public accessor for the underlying (4,) ndarray (returns a copy)."""
+        return self._data.copy()
+
     def to_array(self) -> np.ndarray:
         return self._data.copy()
 
@@ -466,27 +613,23 @@ class Quaternion:
             >>> Quaternion(1,2,3,4).to_json()
             '{"type": "Quaternion", "data": [1.0, 2.0, 3.0, 4.0]}'
         """
-        import json
-        return json.dumps({"type": "Quaternion", "data": self._data.tolist()})
+        return _json.dumps({"type": "Quaternion", "data": self._data.tolist()})
 
     def to_bytes(self) -> bytes:
         """Serialize to compact binary format."""
-        import struct
         data = self._data.astype(np.float64)
-        return struct.pack('<i', 0) + data.tobytes()
+        return _struct.pack('<i', 0) + data.tobytes()
 
     @classmethod
     def from_json(cls, s: str) -> "Quaternion":
         """Deserialize from JSON string."""
-        import json
-        d = json.loads(s)
+        d = _json.loads(s)
         return cls(np.array(d["data"], dtype=float))
 
     @classmethod
     def from_bytes(cls, b: bytes) -> "Quaternion":
         """Deserialize from binary bytes."""
-        import struct
-        type_id = struct.unpack_from('<i', b, 0)[0]
+        type_id = _struct.unpack_from('<i', b, 0)[0]
         data = np.frombuffer(b[4:], dtype=np.float64)
         return cls(data)
 
@@ -509,6 +652,11 @@ class Quaternion:
 
     def __abs__(self) -> float:
         return self.norm()
+
+    def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
+        if copy is False and dtype is None:
+            return self._data
+        return np.array(self._data, dtype=dtype, copy=copy)
 
 
 def quat(*args) -> Quaternion:

@@ -5,10 +5,12 @@
 """Quaternion collection types — QuatVector, QuatMatrix, QuatTensor."""
 from __future__ import annotations
 
+import json as _json
+import struct as _struct
 import numpy as np
 from typing import Tuple, List, Generator
 from numbers import Real, Complex
-from quat.algebra import _hamilton, _CONJ, _REAL_LEFT
+from quat.algebra import _hamilton, _CONJ, _REAL_LEFT, _HAMILTON_TENSOR
 from quat.core import Quaternion
 
 
@@ -70,25 +72,34 @@ class QuatVector:
     def __iter__(self) -> Generator[Quaternion, None, None]:
         return (Quaternion(row) for row in self._data)
 
+    @property
+    def data(self) -> np.ndarray:
+        return self._data.copy()
+
     def to_array(self) -> np.ndarray:
         return self._data.copy()
+
+    def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
+        if copy is False and dtype is None:
+            return self._data
+        return np.array(self._data, dtype=dtype, copy=copy)
 
     # -- component arrays (n,) ------------------------------------------------
     @property
     def real(self) -> np.ndarray:
-        return self._data[:, 0].copy()
+        return self._data[:, 0]
 
     @property
     def i(self) -> np.ndarray:
-        return self._data[:, 1].copy()
+        return self._data[:, 1]
 
     @property
     def j(self) -> np.ndarray:
-        return self._data[:, 2].copy()
+        return self._data[:, 2]
 
     @property
     def k(self) -> np.ndarray:
-        return self._data[:, 3].copy()
+        return self._data[:, 3]
 
     def quaternions(self) -> List[Quaternion]:
         return [Quaternion(row) for row in self._data]
@@ -199,25 +210,21 @@ class QuatVector:
 
     # -- serialization --------------------------------------------------------
     def to_json(self) -> str:
-        import json
-        return json.dumps({"type": "QuatVector", "data": self._data.tolist()})
+        return _json.dumps({"type": "QuatVector", "data": self._data.tolist()})
 
     def to_bytes(self) -> bytes:
-        import struct
         data = self._data.astype(np.float64)
         shape = np.array(data.shape, dtype=np.int32)
-        return struct.pack('<ii', 1, len(shape)) + shape.tobytes() + data.tobytes()
+        return _struct.pack('<ii', 1, len(shape)) + shape.tobytes() + data.tobytes()
 
     @classmethod
     def from_json(cls, s: str) -> "QuatVector":
-        import json
-        d = json.loads(s)
+        d = _json.loads(s)
         return cls(np.array(d["data"], dtype=float))
 
     @classmethod
     def from_bytes(cls, b: bytes) -> "QuatVector":
-        import struct
-        type_id, ndim = struct.unpack_from('<ii', b, 0)
+        type_id, ndim = _struct.unpack_from('<ii', b, 0)
         offset = 8
         shape = np.frombuffer(b[offset:offset + ndim * 4], dtype=np.int32)
         offset += ndim * 4
@@ -346,25 +353,34 @@ class QuatMatrix:
     def col(self, j: int) -> QuatVector:
         return QuatVector(self._data[:, j])
 
+    @property
+    def data(self) -> np.ndarray:
+        return self._data.copy()
+
     def to_array(self) -> np.ndarray:
         return self._data.copy()
+
+    def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
+        if copy is False and dtype is None:
+            return self._data
+        return np.array(self._data, dtype=dtype, copy=copy)
 
     # -- component arrays (m, n) ---------------------------------------------
     @property
     def real(self) -> np.ndarray:
-        return self._data[..., 0].copy()
+        return self._data[..., 0]
 
     @property
     def i(self) -> np.ndarray:
-        return self._data[..., 1].copy()
+        return self._data[..., 1]
 
     @property
     def j(self) -> np.ndarray:
-        return self._data[..., 2].copy()
+        return self._data[..., 2]
 
     @property
     def k(self) -> np.ndarray:
-        return self._data[..., 3].copy()
+        return self._data[..., 3]
 
     # -- display -------------------------------------------------------------
     def __repr__(self) -> str:
@@ -407,11 +423,10 @@ class QuatMatrix:
         if isinstance(other, QuatMatrix):
             if self._n != other._m:
                 raise ValueError("Shape mismatch")
-            result = np.zeros((self._m, other._n, 4))
-            for l in range(self._n):
-                result += _hamilton(
-                    self._data[:, l, None, :],
-                    other._data[None, l, :, :])
+            result = np.einsum(
+                'rab,mia,inb->mnr',
+                _HAMILTON_TENSOR, self._data, other._data,
+                optimize=True)
             return QuatMatrix(result)
         if isinstance(other, (Real, Complex)):
             s = float(other.real if isinstance(other, Complex) else other)
@@ -486,25 +501,21 @@ class QuatMatrix:
 
     # -- serialization --------------------------------------------------------
     def to_json(self) -> str:
-        import json
-        return json.dumps({"type": "QuatMatrix", "data": self._data.tolist()})
+        return _json.dumps({"type": "QuatMatrix", "data": self._data.tolist()})
 
     def to_bytes(self) -> bytes:
-        import struct
         data = self._data.astype(np.float64)
         shape = np.array(data.shape, dtype=np.int32)
-        return struct.pack('<ii', 2, len(shape)) + shape.tobytes() + data.tobytes()
+        return _struct.pack('<ii', 2, len(shape)) + shape.tobytes() + data.tobytes()
 
     @classmethod
     def from_json(cls, s: str) -> "QuatMatrix":
-        import json
-        d = json.loads(s)
+        d = _json.loads(s)
         return cls(np.array(d["data"], dtype=float))
 
     @classmethod
     def from_bytes(cls, b: bytes) -> "QuatMatrix":
-        import struct
-        type_id, ndim = struct.unpack_from('<ii', b, 0)
+        type_id, ndim = _struct.unpack_from('<ii', b, 0)
         offset = 8
         shape = np.frombuffer(b[offset:offset + ndim * 4], dtype=np.int32)
         offset += ndim * 4
@@ -650,25 +661,34 @@ class QuatTensor:
         else:
             raise TypeError(f"Invalid index {idx}")
 
+    @property
+    def data(self) -> np.ndarray:
+        return self._data.copy()
+
     def to_array(self) -> np.ndarray:
         return self._data.copy()
+
+    def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
+        if copy is False and dtype is None:
+            return self._data
+        return np.array(self._data, dtype=dtype, copy=copy)
 
     # -- component tensors (n, H, W) -----------------------------------------
     @property
     def real(self) -> np.ndarray:
-        return self._data[..., 0].copy()
+        return self._data[..., 0]
 
     @property
     def i(self) -> np.ndarray:
-        return self._data[..., 1].copy()
+        return self._data[..., 1]
 
     @property
     def j(self) -> np.ndarray:
-        return self._data[..., 2].copy()
+        return self._data[..., 2]
 
     @property
     def k(self) -> np.ndarray:
-        return self._data[..., 3].copy()
+        return self._data[..., 3]
 
     def __repr__(self) -> str:
         return f"QuatTensor({self._p}x{self._q}x{self._r})"
@@ -791,25 +811,21 @@ class QuatTensor:
 
     # -- serialization --------------------------------------------------------
     def to_json(self) -> str:
-        import json
-        return json.dumps({"type": "QuatTensor", "data": self._data.tolist()})
+        return _json.dumps({"type": "QuatTensor", "data": self._data.tolist()})
 
     def to_bytes(self) -> bytes:
-        import struct
         data = self._data.astype(np.float64)
         shape = np.array(data.shape, dtype=np.int32)
-        return struct.pack('<ii', 3, len(shape)) + shape.tobytes() + data.tobytes()
+        return _struct.pack('<ii', 3, len(shape)) + shape.tobytes() + data.tobytes()
 
     @classmethod
     def from_json(cls, s: str) -> "QuatTensor":
-        import json
-        d = json.loads(s)
+        d = _json.loads(s)
         return cls(np.array(d["data"], dtype=float))
 
     @classmethod
     def from_bytes(cls, b: bytes) -> "QuatTensor":
-        import struct
-        type_id, ndim = struct.unpack_from('<ii', b, 0)
+        type_id, ndim = _struct.unpack_from('<ii', b, 0)
         offset = 8
         shape = np.frombuffer(b[offset:offset + ndim * 4], dtype=np.int32)
         offset += ndim * 4

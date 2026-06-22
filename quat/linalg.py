@@ -51,23 +51,11 @@ def svd(A: QuatMatrix) -> Tuple[QuatMatrix, np.ndarray, QuatMatrix]:
     k = min(A.shape[0], A.shape[1])
     s = s_full[::4][:k]
 
-    U_data = np.empty((A.shape[0], A.shape[0], 4))
-    for i in range(0, U_real.shape[1], 4):
-        j = i // 4
-        block = U_real[:, i:i+4]
-        for r in range(A.shape[0]):
-            blk = block[4*r:4*r+4, :]
-            U_data[r, j] = Quaternion.from_real_matrix_left(blk)._data
+    m, n = A.shape
+    U_data = U_real.reshape(m, 4, m, 4)[:, :, :, 0].transpose(0, 2, 1)
     U = QuatMatrix(U_data)
 
-    n_A = A.shape[1]
-    V_data = np.empty((n_A, n_A, 4))
-    for i in range(0, Vt_real.shape[0], 4):
-        j = i // 4
-        block = Vt_real[i:i+4, :]
-        for c in range(n_A):
-            blk = block[:, 4*c:4*c+4].T
-            V_data[c, j] = Quaternion.from_real_matrix_left(blk)._data
+    V_data = Vt_real.reshape(n, 4, n, 4)[:, 0, :, :].transpose(1, 0, 2)
     V = QuatMatrix(V_data)
 
     return U, s, V.H

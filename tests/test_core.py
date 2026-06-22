@@ -197,6 +197,96 @@ class TestQuaternionRotation(QuatTestCase):
         self.assertAlmostEqual(vr[0], 0.0, places=10)
         self.assertAlmostEqual(vr[1], 1.0, places=10)
 
+    def test_axis_angle_roundtrip(self):
+        from quat.core import Quaternion
+        q = Quaternion.from_axis_angle((0, 0, 1), 1.2)
+        axis, angle = q.to_axis_angle()
+        self.assertAlmostEqual(float(np.linalg.norm(axis)), 1.0, places=10)
+        self.assertAlmostEqual(angle, 1.2, places=10)
+
+    def test_axis_angle_identity(self):
+        from quat.core import Quaternion
+        q = Quaternion(1, 0, 0, 0)
+        axis, angle = q.to_axis_angle()
+        self.assertAlmostEqual(angle, 0.0, places=10)
+        self.assertEqual(float(np.linalg.norm(axis)), 1.0)
+
+    def test_axis_angle_x_axis(self):
+        from quat.core import Quaternion
+        q = Quaternion.from_axis_angle((1, 0, 0), 0.5)
+        axis, angle = q.to_axis_angle()
+        self.assertAlmostEqual(angle, 0.5, places=10)
+        self.assertTrue(np.allclose(axis, [1., 0., 0.], atol=1e-10))
+
+
+class TestQuaternionEuler(QuatTestCase):
+    def test_zyx_roundtrip(self):
+        from quat.core import Quaternion
+        np.random.seed(42)
+        for _ in range(10):
+            phi = np.random.uniform(-np.pi, np.pi)
+            theta = np.random.uniform(-np.pi / 2 + 0.05, np.pi / 2 - 0.05)
+            psi = np.random.uniform(-np.pi, np.pi)
+            angles = np.array([phi, theta, psi])
+            q = Quaternion.from_euler(angles, 'zyx')
+            out = q.to_euler('zyx')
+            q2 = Quaternion.from_euler(out, 'zyx')
+            self.assertTrue(q.isclose(q2), f'zyx failed: {angles} -> {out}')
+
+    def test_xyz_roundtrip(self):
+        from quat.core import Quaternion
+        np.random.seed(99)
+        for _ in range(10):
+            angles = np.random.uniform(-np.pi / 2 + 0.1, np.pi / 2 - 0.1, 3)
+            q = Quaternion.from_euler(angles, 'xyz')
+            out = q.to_euler('xyz')
+            q2 = Quaternion.from_euler(out, 'xyz')
+            self.assertTrue(q.isclose(q2))
+
+    def test_zxz_roundtrip(self):
+        from quat.core import Quaternion
+        for _ in range(10):
+            a = np.random.uniform(-np.pi, np.pi)
+            b = np.random.uniform(0.1, np.pi - 0.1)
+            c = np.random.uniform(-np.pi, np.pi)
+            angles = np.array([a, b, c])
+            q = Quaternion.from_euler(angles, 'zxz')
+            out = q.to_euler('zxz')
+            q2 = Quaternion.from_euler(out, 'zxz')
+            self.assertTrue(q.isclose(q2))
+
+    def test_xzx_roundtrip(self):
+        from quat.core import Quaternion
+        for _ in range(10):
+            a = np.random.uniform(-np.pi, np.pi)
+            b = np.random.uniform(0.1, np.pi - 0.1)
+            c = np.random.uniform(-np.pi, np.pi)
+            angles = np.array([a, b, c])
+            q = Quaternion.from_euler(angles, 'xzx')
+            out = q.to_euler('xzx')
+            q2 = Quaternion.from_euler(out, 'xzx')
+            self.assertTrue(q.isclose(q2))
+
+    def test_zero_angles(self):
+        from quat.core import Quaternion
+        q = Quaternion.from_euler([0, 0, 0], 'zyx')
+        self.assertEqual(q, Quaternion(1, 0, 0, 0))
+        out = q.to_euler('zyx')
+        self.assertTrue(np.allclose(out, [0, 0, 0]))
+
+    def test_extrinsic_roundtrip(self):
+        from quat.core import Quaternion
+        angles = np.array([0.3, 0.5, 0.7])
+        q = Quaternion.from_euler(angles, 'zyx', intrinsic=False)
+        out = q.to_euler('zyx', intrinsic=False)
+        q2 = Quaternion.from_euler(out, 'zyx', intrinsic=False)
+        self.assertTrue(q.isclose(q2))
+
+    def test_invalid_sequence(self):
+        from quat.core import Quaternion
+        with self.assertRaises(ValueError):
+            Quaternion.from_euler([0, 0, 0], 'xwz')
+
 
 class TestQuaternionMatrixRepresentations(QuatTestCase):
     def test_complex_roundtrip(self):
