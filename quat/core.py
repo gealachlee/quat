@@ -658,6 +658,31 @@ class Quaternion:
             return self._data
         return np.array(self._data, dtype=dtype, copy=copy)
 
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        """NumPy ufunc dispatch — preserve Quaternion type for supported ops."""
+        if method != '__call__':
+            return NotImplemented
+        if kwargs.get('out') is not None:
+            return NotImplemented
+        a, b = (inputs[0], inputs[1]) if len(inputs) == 2 else (inputs[0], None)
+        if ufunc is np.add:
+            return a + b
+        if ufunc is np.subtract:
+            return a - b
+        if ufunc is np.multiply:
+            return a * b
+        if ufunc is np.true_divide or ufunc is np.floor_divide:
+            return a / b
+        if ufunc is np.negative:
+            return -a
+        if ufunc is np.positive:
+            return Quaternion(a._data.copy())
+        if ufunc is np.absolute:
+            return float(abs(a))
+        if ufunc is np.conjugate:
+            return a.conjugate()
+        return NotImplemented
+
 
 def quat(*args) -> Quaternion:
     """Convenience constructor for Quaternion."""

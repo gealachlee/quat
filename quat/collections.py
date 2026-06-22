@@ -84,6 +84,22 @@ class QuatVector:
             return self._data
         return np.array(self._data, dtype=dtype, copy=copy)
 
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        if method != '__call__' or kwargs.get('out') is not None:
+            return NotImplemented
+        a, b = (inputs[0], inputs[1]) if len(inputs) == 2 else (inputs[0], None)
+        if ufunc is np.add:
+            return a + b
+        if ufunc is np.subtract:
+            return a - b
+        if ufunc is np.multiply:
+            return a * b
+        if ufunc is np.true_divide or ufunc is np.floor_divide:
+            return a / b
+        if ufunc is np.negative:
+            return -a
+        return NotImplemented
+
     # -- component arrays (n,) ------------------------------------------------
     @property
     def real(self) -> np.ndarray:
@@ -364,6 +380,22 @@ class QuatMatrix:
         if copy is False and dtype is None:
             return self._data
         return np.array(self._data, dtype=dtype, copy=copy)
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        if method != '__call__' or kwargs.get('out') is not None:
+            return NotImplemented
+        a, b = (inputs[0], inputs[1]) if len(inputs) == 2 else (inputs[0], None)
+        if ufunc is np.add:
+            return a + b
+        if ufunc is np.subtract:
+            return a - b
+        if ufunc is np.multiply:
+            return a * b
+        if ufunc is np.true_divide or ufunc is np.floor_divide:
+            return a / b
+        if ufunc is np.negative:
+            return -a
+        return NotImplemented
 
     # -- component arrays (m, n) ---------------------------------------------
     @property
@@ -672,6 +704,22 @@ class QuatTensor:
         if copy is False and dtype is None:
             return self._data
         return np.array(self._data, dtype=dtype, copy=copy)
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        if method != '__call__' or kwargs.get('out') is not None:
+            return NotImplemented
+        a, b = (inputs[0], inputs[1]) if len(inputs) == 2 else (inputs[0], None)
+        if ufunc is np.add:
+            return a + b
+        if ufunc is np.subtract:
+            return a - b
+        if ufunc is np.multiply:
+            return a * b
+        if ufunc is np.true_divide or ufunc is np.floor_divide:
+            return a / b
+        if ufunc is np.negative:
+            return -a
+        return NotImplemented
 
     # -- component tensors (n, H, W) -----------------------------------------
     @property
