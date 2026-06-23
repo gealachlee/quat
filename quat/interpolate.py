@@ -63,11 +63,22 @@ def slerp_vector(v0: "QuatVector", v1: "QuatVector", t: np.ndarray | float) -> "
     from quat.collections import QuatVector
     n = len(v0)
     t_arr = np.broadcast_to(np.asarray(t, dtype=float), (n,))
-    result = np.empty((n, 4))
-    for i in range(n):
-        q0 = Quaternion(v0._data[i])
-        q1 = Quaternion(v1._data[i])
-        result[i] = slerp(q0, q1, float(t_arr[i]))._data
+    p = v0._data
+    q = v1._data.copy()
+    cos_theta = (p * q).sum(axis=1)
+    flip = cos_theta < 0.0
+    q[flip] *= -1.0
+    cos_theta[flip] *= -1.0
+    near_ident = cos_theta > 1.0 - 1e-12
+    theta = np.arccos(np.clip(cos_theta, -1.0, 1.0))
+    s = np.sin(theta)
+    s[near_ident] = 1.0
+    w0 = np.sin((1.0 - t_arr) * theta) / s
+    w1 = np.sin(t_arr * theta) / s
+    result = p + t_arr[:, None] * (q - p)
+    not_near = ~near_ident
+    if np.any(not_near):
+        result[not_near] = w0[not_near, None] * p[not_near] + w1[not_near, None] * q[not_near]
     return QuatVector(result)
 
 

@@ -251,9 +251,12 @@ class QuatVector:
     # -- matrix representation -----------------------------------------------
     def to_complex_matrix(self) -> np.ndarray:
         n = len(self)
+        a, b, c, d = (self._data[:, i] for i in range(4))
         M = np.zeros((2*n, 2), dtype=complex)
-        for i in range(n):
-            M[2*i:2*i+2, :] = Quaternion(self._data[i]).to_complex_matrix()
+        M[0::2, 0] = a + 1j*b
+        M[0::2, 1] = c + 1j*d
+        M[1::2, 0] = -c + 1j*d
+        M[1::2, 1] = a - 1j*b
         return M
 
     def to_real_matrix_left(self) -> np.ndarray:
@@ -266,9 +269,12 @@ class QuatVector:
             (8, 4)
         """
         n = len(self)
+        a, b, c, d = (self._data[:, i] for i in range(4))
         M = np.zeros((4*n, 4))
-        for i in range(n):
-            M[4*i:4*i+4, :] = Quaternion(self._data[i]).to_real_matrix_left()
+        M[0::4, 0] = a; M[0::4, 1] = -b; M[0::4, 2] = -c; M[0::4, 3] = -d
+        M[1::4, 0] = b; M[1::4, 1] =  a; M[1::4, 2] = -d; M[1::4, 3] =  c
+        M[2::4, 0] = c; M[2::4, 1] =  d; M[2::4, 2] =  a; M[2::4, 3] = -b
+        M[3::4, 0] = d; M[3::4, 1] = -c; M[3::4, 2] =  b; M[3::4, 3] =  a
         return M
 
     @classmethod
@@ -278,9 +284,10 @@ class QuatVector:
             raise ValueError(f"Expected (4n,4), got {M.shape}")
         n = M.shape[0] // 4
         data = np.empty((n, 4))
-        for i in range(n):
-            block = M[4*i:4*i+4, :]
-            data[i] = Quaternion.from_real_matrix_left(block)._data
+        data[:, 0] = M[0::4, 0]
+        data[:, 1] = M[1::4, 0]
+        data[:, 2] = M[2::4, 0]
+        data[:, 3] = M[3::4, 0]
         return cls(data)
 
 
@@ -557,11 +564,12 @@ class QuatMatrix:
 
     # -- matrix representations ----------------------------------------------
     def to_complex_matrix(self) -> np.ndarray:
+        a, b, c, d = (self._data[..., i] for i in range(4))
         M = np.zeros((2*self._m, 2*self._n), dtype=complex)
-        for i in range(self._m):
-            for j in range(self._n):
-                M[2*i:2*i+2, 2*j:2*j+2] = \
-                    Quaternion(self._data[i, j]).to_complex_matrix()
+        M[0::2, 0::2] = a + 1j*b
+        M[0::2, 1::2] = c + 1j*d
+        M[1::2, 0::2] = -c + 1j*d
+        M[1::2, 1::2] = a - 1j*b
         return M
 
     @classmethod
@@ -571,10 +579,10 @@ class QuatMatrix:
             raise ValueError(f"Expected (2m,2n), got {M.shape}")
         m, n = M.shape[0] // 2, M.shape[1] // 2
         result = np.zeros((m, n, 4))
-        for i in range(m):
-            for j in range(n):
-                block = M[2*i:2*i+2, 2*j:2*j+2]
-                result[i, j] = Quaternion.from_complex_matrix(block)._data
+        result[:, :, 0] = (M[0::2, 0::2].real + M[1::2, 1::2].real) / 2.
+        result[:, :, 1] = (M[0::2, 0::2].imag - M[1::2, 1::2].imag) / 2.
+        result[:, :, 2] = (M[0::2, 1::2].real - M[1::2, 0::2].real) / 2.
+        result[:, :, 3] = (M[0::2, 1::2].imag + M[1::2, 0::2].imag) / 2.
         return cls(result)
 
     def to_real_matrix_left(self) -> np.ndarray:

@@ -136,9 +136,9 @@ def pseudo_inverse(A: QuatMatrix, tol: Optional[float] = None) -> QuatMatrix:
     m, n = A.shape
     k = len(s)
     S_data = np.zeros((n, m, 4))
-    for i in range(k):
-        if s[i] > tol:
-            S_data[i, i, 0] = 1.0 / s[i]
+    idx = np.arange(k)
+    mask = s > tol
+    S_data[idx[mask], idx[mask], 0] = 1.0 / s[mask]
     S_pinv = QuatMatrix(S_data)
     return Vh.H * S_pinv * U.H
 
@@ -164,10 +164,9 @@ def trace(A: QuatMatrix) -> Quaternion:
     """
     if A.shape[0] != A.shape[1]:
         raise ValueError(f"Expected square matrix, got {A.shape}")
-    result = Quaternion.zero()
-    for i in range(A.shape[0]):
-        result = result + A[i, i]
-    return result
+    n = A.shape[0]
+    diag = A._data[np.arange(n), np.arange(n)]
+    return Quaternion(diag.sum(axis=0))
 
 
 def det(A: QuatMatrix) -> float:
