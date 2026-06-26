@@ -305,3 +305,31 @@ class TestCollectionsNumPy(QuatTestCase):
         T = QuatTensor.zeros(2, 3, 4)
         r = np.add(T, T)
         self.assertIsInstance(r, QuatTensor)
+
+
+class TestQuatVectorToNumpy(QuatTestCase):
+    def test_to_numpy_default_copy(self):
+        from quat.collections import QuatVector
+        import numpy as np
+        v = QuatVector(np.array([[1., 2., 3., 4.], [5., 6., 7., 8.]]))
+        arr = v.to_numpy()
+        self.assertEqual(arr.shape, (2, 4))
+        self.assertTrue(np.allclose(arr, [[1., 2., 3., 4.], [5., 6., 7., 8.]]))
+        arr[0, 0] = 99.0
+        self.assertNotEqual(v.real[0], 99.0)
+
+    def test_to_numpy_no_copy(self):
+        from quat.collections import QuatVector
+        import numpy as np
+        v = QuatVector(np.array([[1., 2., 3., 4.]]))
+        arr = v.to_numpy(copy=False)
+        self.assertTrue(arr is v._data)
+        arr[0, 0] = 99.0
+        self.assertEqual(v.real[0], 99.0)
+
+    def test_to_numpy_dtype(self):
+        from quat.collections import QuatVector
+        import numpy as np
+        v = QuatVector(np.array([[1., 2., 3., 4.]]))
+        arr = v.to_numpy(dtype=np.float32)
+        self.assertEqual(arr.dtype, np.float32)
