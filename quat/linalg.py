@@ -10,6 +10,14 @@ from quat.core import Quaternion
 from quat.collections import QuatVector, QuatMatrix
 
 
+def _svd_values(A: QuatMatrix) -> np.ndarray:
+    """Compute only singular values (no vectors) via complex representation."""
+    A_complex = A.to_complex_matrix()
+    s_full = np.linalg.svd(A_complex, compute_uv=False)
+    k = min(A.shape[0], A.shape[1])
+    return s_full[::2][:k]
+
+
 def svd(A: QuatMatrix) -> Tuple[QuatMatrix, np.ndarray, QuatMatrix]:
     """Quaternion singular value decomposition.
 
@@ -24,6 +32,8 @@ def svd(A: QuatMatrix) -> Tuple[QuatMatrix, np.ndarray, QuatMatrix]:
     Implemented via the real (left-regular) representation: each quaternion
     element is expanded to a 4×4 real block, forming a 4m×4n real matrix
     whose SVD is computed, then the quaternion structure is reconstructed.
+    For singular values only use ``_svd_values()`` which uses the faster
+    complex representation path.
 
     Args:
         A: QuatMatrix of shape (m, n).
@@ -81,7 +91,7 @@ def rank(A: QuatMatrix, tol: Optional[float] = None) -> int:
         >>> rank(Z)
         0
     """
-    _, s, _ = svd(A)
+    s = _svd_values(A)
     if tol is None:
         tol = max(A.shape) * s.max() * np.finfo(float).eps
     return int((s > tol).sum())
@@ -102,7 +112,7 @@ def condition_number(A: QuatMatrix) -> float:
         >>> I = QuatMatrix.eye(3)
         >>> np.testing.assert_almost_equal(condition_number(I), 1.0)
     """
-    _, s, _ = svd(A)
+    s = _svd_values(A)
     return float(s.max() / s[s > 1e-15].min())
 
 
@@ -221,7 +231,7 @@ def norm(A: QuatMatrix, ord: str = 'fro') -> float:
     if ord == 'fro' or ord is None:
         return A.norm()
     elif ord == 2:
-        _, s, _ = svd(A)
+        s = _svd_values(A)
         return float(s.max())
     else:
         raise ValueError(f"Unsupported norm order: {ord}")

@@ -28,11 +28,18 @@ _HAMILTON_TENSOR[2, 0, 2] = 1;    _HAMILTON_TENSOR[2, 1, 3] = -1;   _HAMILTON_TE
 _HAMILTON_TENSOR[3, 0, 3] = 1;    _HAMILTON_TENSOR[3, 1, 2] = 1;    _HAMILTON_TENSOR[3, 2, 1] = -1;   _HAMILTON_TENSOR[3, 3, 0] = 1
 
 
+_EINSUM_THRESHOLD = 2000
+
+
 def _hamilton(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
     """Vectorized Hamilton (quaternion) product.
 
     Supports arbitrary leading-dimension broadcasting via
     ``np.broadcast_shapes``.
+
+    For small inputs uses a component-wise implementation; for larger
+    batches (≥ {threshold} total elements) switches to an einsum-based
+    kernel for better throughput.
 
     Example:
         >>> from quat.algebra import _hamilton
@@ -46,6 +53,10 @@ def _hamilton(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
         >>> _hamilton(i, j)   # i*j = k
         array([0., 0., 0., 1.])
     """
+    total_elements = p.size + q.size
+    if total_elements >= _EINSUM_THRESHOLD:
+        return np.einsum('rck,...c,...k->...r', _HAMILTON_TENSOR, p, q, optimize=True)
+
     a1, b1, c1, d1 = p[..., 0], p[..., 1], p[..., 2], p[..., 3]
     a2, b2, c2, d2 = q[..., 0], q[..., 1], q[..., 2], q[..., 3]
     shp = np.broadcast_shapes(p.shape[:-1], q.shape[:-1]) + (4,)

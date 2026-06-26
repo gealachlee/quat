@@ -257,7 +257,7 @@ class QuatVector:
     def to_complex_matrix(self) -> np.ndarray:
         n = len(self)
         a, b, c, d = (self._data[:, i] for i in range(4))
-        M = np.zeros((2*n, 2), dtype=complex)
+        M = np.empty((2*n, 2), dtype=complex)
         M[0::2, 0] = a + 1j*b
         M[0::2, 1] = c + 1j*d
         M[1::2, 0] = -c + 1j*d
@@ -275,7 +275,7 @@ class QuatVector:
         """
         n = len(self)
         a, b, c, d = (self._data[:, i] for i in range(4))
-        M = np.zeros((4*n, 4))
+        M = np.empty((4*n, 4))
         M[0::4, 0] = a; M[0::4, 1] = -b; M[0::4, 2] = -c; M[0::4, 3] = -d
         M[1::4, 0] = b; M[1::4, 1] =  a; M[1::4, 2] = -d; M[1::4, 3] =  c
         M[2::4, 0] = c; M[2::4, 1] =  d; M[2::4, 2] =  a; M[2::4, 3] = -b
@@ -575,7 +575,7 @@ class QuatMatrix:
     # -- matrix representations ----------------------------------------------
     def to_complex_matrix(self) -> np.ndarray:
         a, b, c, d = (self._data[..., i] for i in range(4))
-        M = np.zeros((2*self._m, 2*self._n), dtype=complex)
+        M = np.empty((2*self._m, 2*self._n), dtype=complex)
         M[0::2, 0::2] = a + 1j*b
         M[0::2, 1::2] = c + 1j*d
         M[1::2, 0::2] = -c + 1j*d
@@ -588,7 +588,7 @@ class QuatMatrix:
         if M.ndim != 2 or M.shape[0] % 2 or M.shape[1] % 2:
             raise ValueError(f"Expected (2m,2n), got {M.shape}")
         m, n = M.shape[0] // 2, M.shape[1] // 2
-        result = np.zeros((m, n, 4))
+        result = np.empty((m, n, 4))
         result[:, :, 0] = (M[0::2, 0::2].real + M[1::2, 1::2].real) / 2.
         result[:, :, 1] = (M[0::2, 0::2].imag - M[1::2, 1::2].imag) / 2.
         result[:, :, 2] = (M[0::2, 1::2].real - M[1::2, 0::2].real) / 2.
