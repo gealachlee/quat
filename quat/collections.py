@@ -388,6 +388,11 @@ class QuatMatrix:
     def to_array(self) -> np.ndarray:
         return self._data.copy()
 
+    def to_numpy(self, copy: bool = True, dtype=None) -> np.ndarray:
+        if copy is False and dtype is None:
+            return self._data
+        return np.array(self._data, dtype=dtype, copy=copy)
+
     def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
         if copy is False and dtype is None:
             return self._data

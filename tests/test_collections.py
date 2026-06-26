@@ -333,3 +333,57 @@ class TestQuatVectorToNumpy(QuatTestCase):
         v = QuatVector(np.array([[1., 2., 3., 4.]]))
         arr = v.to_numpy(dtype=np.float32)
         self.assertEqual(arr.dtype, np.float32)
+
+
+class TestQuatMatrixToNumpy(QuatTestCase):
+    def test_to_numpy_default_copy(self):
+        from quat.collections import QuatMatrix
+        import numpy as np
+        M = QuatMatrix(np.ones((2, 3, 4)))
+        arr = M.to_numpy()
+        self.assertEqual(arr.shape, (2, 3, 4))
+        arr[0, 0, 0] = 99.0
+        self.assertNotEqual(M.real[0, 0], 99.0)
+
+    def test_to_numpy_no_copy(self):
+        from quat.collections import QuatMatrix
+        import numpy as np
+        M = QuatMatrix(np.ones((2, 3, 4)))
+        arr = M.to_numpy(copy=False)
+        self.assertTrue(arr is M._data)
+        arr[0, 0, 0] = 99.0
+        self.assertEqual(M.real[0, 0], 99.0)
+
+    def test_to_numpy_dtype(self):
+        from quat.collections import QuatMatrix
+        import numpy as np
+        M = QuatMatrix(np.ones((2, 2, 4)))
+        arr = M.to_numpy(dtype=np.float32)
+        self.assertEqual(arr.dtype, np.float32)
+
+
+class TestQuatTensorToNumpy(QuatTestCase):
+    def test_to_numpy_default_copy(self):
+        from quat.collections import QuatTensor
+        import numpy as np
+        T = QuatTensor(np.ones((2, 3, 4, 4)))
+        arr = T.to_numpy()
+        self.assertEqual(arr.shape, (2, 3, 4, 4))
+        arr[0, 0, 0, 0] = 99.0
+        self.assertNotEqual(T.real[0, 0, 0], 99.0)
+
+    def test_to_numpy_no_copy(self):
+        from quat.collections import QuatTensor
+        import numpy as np
+        T = QuatTensor(np.ones((2, 3, 4, 4)))
+        arr = T.to_numpy(copy=False)
+        self.assertTrue(arr is T._data)
+        arr[0, 0, 0, 0] = 99.0
+        self.assertEqual(T.real[0, 0, 0], 99.0)
+
+    def test_to_numpy_dtype(self):
+        from quat.collections import QuatTensor
+        import numpy as np
+        T = QuatTensor(np.ones((2, 2, 2, 4)))
+        arr = T.to_numpy(dtype=np.float32)
+        self.assertEqual(arr.dtype, np.float32)
