@@ -70,3 +70,32 @@ class TestQFFT2D(QuatTestCase):
         L = qfft2(x, side='left')
         R = qfft2(x, side='right')
         self.assertFalse(np.allclose(L, R))
+
+
+class TestQConv1D(QuatTestCase):
+    def test_qconv_real_equivalent(self):
+        from quat.signal import qconv
+        x_real = np.arange(1.0, 17.0)
+        k_real = np.array([1.0, 2.0, 1.0])
+        x_quat = np.zeros((16, 4))
+        x_quat[:, 0] = x_real
+        k_quat = np.zeros((3, 4))
+        k_quat[:, 0] = k_real
+        result = qconv(x_quat, k_quat)
+        self.assertEqual(result.shape, (18, 4))
+        self.assertTrue(np.allclose(result[:, 0], np.convolve(x_real, k_real, mode='full')))
+
+    def test_qconv_modes(self):
+        from quat.signal import qconv
+        x = np.random.randn(16, 4)
+        k = np.random.randn(4, 4)
+        self.assertEqual(qconv(x, k, mode='full').shape, (19, 4))
+        self.assertEqual(qconv(x, k, mode='same').shape, (16, 4))
+        self.assertEqual(qconv(x, k, mode='valid').shape, (13, 4))
+
+    def test_qconv_invalid_shape(self):
+        from quat.signal import qconv
+        x = np.random.randn(16, 3)
+        k = np.random.randn(3, 4)
+        with self.assertRaises(ValueError):
+            qconv(x, k)
