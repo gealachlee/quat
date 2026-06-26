@@ -153,7 +153,19 @@ All accept a NumPy `Generator`, seed integer, or `None`.
 ### Internals (`quat.algebra`)
 
 `_hamilton(p, q)` — vectorized Hamilton product (the core multiplication kernel).
+Uses a component-wise implementation for small batches and automatically switches
+to an einsum-based kernel when the total number of elements exceeds 2000.
 `_CONJ` — conjugate mask `[1, -1, -1, -1]`.
 `_REAL_LEFT` — `(4,4,4)` tensor mapping a quaternion to its 4×4 left-regular
 real representation.
 `_HAMILTON_TENSOR` — `(4,4,4)` tensor encoding the Hamilton multiplication rules.
+
+### Performance notes
+
+- `rank()`, `condition_number()`, and `norm(A, 2)` use `_svd_values()` internally —
+  a fast path that computes singular values via the complex (2×2) representation
+  with `compute_uv=False`, avoiding the full 4m×4n real SVD. This is ~20× faster
+  than computing the complete decomposition.
+- Matrix representation methods (`to_complex_matrix`, `to_real_matrix_left`,
+  `from_complex_matrix`) use `np.empty` instead of `np.zeros` to skip the
+  zero-initialisation pass.
