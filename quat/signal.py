@@ -79,3 +79,33 @@ def qconv(x: np.ndarray, kernel: np.ndarray, mode: str = 'full') -> np.ndarray:
         return y_full[..., start:start + n, :]
     else:
         return y_full[..., k - 1:n, :]
+
+
+def qconv2(x: np.ndarray, kernel: np.ndarray, mode: str = 'full') -> np.ndarray:
+    x = np.asarray(x, dtype=float)
+    kernel = np.asarray(kernel, dtype=float)
+    if x.ndim < 3 or x.shape[-1] != 4:
+        raise ValueError(f"x last axis must have size 4, got shape {x.shape}")
+    if kernel.ndim < 3 or kernel.shape[-1] != 4:
+        raise ValueError(f"kernel last axis must have size 4, got shape {kernel.shape}")
+    if mode not in ('full', 'same', 'valid'):
+        raise ValueError(f"mode must be 'full', 'same', or 'valid', got {mode!r}")
+    nh, nw = x.shape[-3], x.shape[-2]
+    kh, kw = kernel.shape[-3], kernel.shape[-2]
+    Nh, Nw = nh + kh - 1, nw + kw - 1
+    x_pad = np.zeros(x.shape[:-3] + (Nh, Nw, 4))
+    k_pad = np.zeros(kernel.shape[:-3] + (Nh, Nw, 4))
+    x_pad[..., :nh, :nw, :] = x
+    k_pad[..., :kh, :kw, :] = kernel
+    X = qfft2(x_pad)
+    K = qfft2(k_pad)
+    Y = _hamilton(X, K)
+    y_full = iqfft2(Y)
+    if mode == 'full':
+        return y_full
+    elif mode == 'same':
+        sh = (kh - 1) // 2
+        sw = (kw - 1) // 2
+        return y_full[..., sh:sh + nh, sw:sw + nw, :]
+    else:
+        return y_full[..., kh - 1:nh, kw - 1:nw, :]

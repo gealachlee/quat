@@ -99,3 +99,22 @@ class TestQConv1D(QuatTestCase):
         k = np.random.randn(3, 4)
         with self.assertRaises(ValueError):
             qconv(x, k)
+
+
+class TestQConv2D(QuatTestCase):
+    def test_qconv2_identity(self):
+        from quat.signal import qconv2
+        x = np.random.randn(8, 8, 4)
+        delta = np.zeros((1, 1, 4))
+        delta[:, :, 0] = 1.0
+        result = qconv2(x, delta, mode='same')
+        self.assertEqual(result.shape, (8, 8, 4))
+        self.assertTrue(np.allclose(result, x))
+
+    def test_qconv2_modes(self):
+        from quat.signal import qconv2
+        x = np.random.randn(8, 8, 4)
+        k = np.random.randn(3, 3, 4)
+        self.assertEqual(qconv2(x, k, mode='full').shape, (10, 10, 4))
+        self.assertEqual(qconv2(x, k, mode='same').shape, (8, 8, 4))
+        self.assertEqual(qconv2(x, k, mode='valid').shape, (6, 6, 4))
