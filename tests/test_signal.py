@@ -118,3 +118,47 @@ class TestQConv2D(QuatTestCase):
         self.assertEqual(qconv2(x, k, mode='full').shape, (10, 10, 4))
         self.assertEqual(qconv2(x, k, mode='same').shape, (8, 8, 4))
         self.assertEqual(qconv2(x, k, mode='valid').shape, (6, 6, 4))
+
+
+class TestFilters(QuatTestCase):
+    def test_lowpass_shape(self):
+        from quat.signal import lowpass
+        from quat.collections import QuatVector
+        f = lowpass(32, 0.25)
+        self.assertEqual(f.shape, (32,))
+        self.assertIsInstance(f, QuatVector)
+
+    def test_highpass_shape(self):
+        from quat.signal import highpass
+        f = highpass(32, 0.25)
+        self.assertEqual(f.shape, (32,))
+
+    def test_bandpass_shape(self):
+        from quat.signal import bandpass
+        f = bandpass(32, 0.1, 0.3)
+        self.assertEqual(f.shape, (32,))
+
+    def test_bandstop_shape(self):
+        from quat.signal import bandstop
+        f = bandstop(32, 0.1, 0.3)
+        self.assertEqual(f.shape, (32,))
+
+    def test_filter_real_pure(self):
+        from quat.signal import lowpass
+        f = lowpass(16, 0.25)
+        arr = f.to_array()
+        self.assertTrue(np.allclose(arr[:, 1:], 0.0))
+
+    def test_lowpass_attenuation(self):
+        from quat.signal import lowpass, qfft
+        f = lowpass(64, 0.2)
+        F = qfft(f.to_array())
+        mag = np.sqrt((F * F).sum(axis=-1))
+        self.assertGreater(float(mag[0]), float(mag[32]))
+
+    def test_bandpass_range(self):
+        from quat.signal import bandpass, qfft
+        bp = bandpass(64, 0.1, 0.3)
+        F = qfft(bp.to_array())
+        mag = np.sqrt((F * F).sum(axis=-1))
+        self.assertGreater(float(mag[12]), float(mag[0]))

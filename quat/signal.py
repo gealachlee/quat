@@ -109,3 +109,57 @@ def qconv2(x: np.ndarray, kernel: np.ndarray, mode: str = 'full') -> np.ndarray:
         return y_full[..., sh:sh + nh, sw:sw + nw, :]
     else:
         return y_full[..., kh - 1:nh, kw - 1:nw, :]
+
+
+def _sinc(x: np.ndarray) -> np.ndarray:
+    x = np.asarray(x, dtype=float)
+    return np.where(x == 0, 1.0, np.sin(np.pi * x) / (np.pi * x))
+
+
+def lowpass(n: int, cutoff: float):
+    from quat.collections import QuatVector
+    if not 0 < cutoff <= 0.5:
+        raise ValueError(f"cutoff must be in (0, 0.5], got {cutoff}")
+    m = (n - 1) / 2
+    t = np.arange(n) - m
+    window = 0.54 - 0.46 * np.cos(2 * np.pi * np.arange(n) / (n - 1)) if n > 1 else np.ones(1)
+    kernel = _sinc(2 * cutoff * t) * (2 * cutoff) * window
+    data = np.zeros((n, 4))
+    data[:, 0] = kernel
+    return QuatVector(data)
+
+
+def highpass(n: int, cutoff: float):
+    from quat.collections import QuatVector
+    if not 0 < cutoff <= 0.5:
+        raise ValueError(f"cutoff must be in (0, 0.5], got {cutoff}")
+    lp = lowpass(n, cutoff)._data[:, 0]
+    impulse = np.zeros(n)
+    impulse[n // 2] = 1.0
+    kernel = impulse - lp
+    data = np.zeros((n, 4))
+    data[:, 0] = kernel
+    return QuatVector(data)
+
+
+def bandpass(n: int, low: float, high: float):
+    from quat.collections import QuatVector
+    if not 0 < low < high <= 0.5:
+        raise ValueError(f"require 0 < low < high <= 0.5, got {low}, {high}")
+    kernel = lowpass(n, high)._data[:, 0] - lowpass(n, low)._data[:, 0]
+    data = np.zeros((n, 4))
+    data[:, 0] = kernel
+    return QuatVector(data)
+
+
+def bandstop(n: int, low: float, high: float):
+    from quat.collections import QuatVector
+    if not 0 < low < high <= 0.5:
+        raise ValueError(f"require 0 < low < high <= 0.5, got {low}, {high}")
+    bp = bandpass(n, low, high)._data[:, 0]
+    impulse = np.zeros(n)
+    impulse[n // 2] = 1.0
+    kernel = impulse - bp
+    data = np.zeros((n, 4))
+    data[:, 0] = kernel
+    return QuatVector(data)
