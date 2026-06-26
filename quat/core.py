@@ -609,6 +609,11 @@ class Quaternion:
     def to_array(self) -> np.ndarray:
         return self._data.copy()
 
+    def to_numpy(self, copy: bool = True, dtype=None) -> np.ndarray:
+        if copy is False and dtype is None:
+            return self._data
+        return np.array(self._data, dtype=dtype, copy=copy)
+
     # -- serialization --------------------------------------------------------
     def to_json(self) -> str:
         """Serialize to JSON string.
