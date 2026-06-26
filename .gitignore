@@ -2,6 +2,6 @@ __pycache__/
 *.pyc
 *.pyo
 ../ksqmm/
-docs/
+docs/_build/
 data/
 quat.egg-info/
