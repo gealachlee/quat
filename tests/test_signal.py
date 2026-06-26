@@ -47,3 +47,26 @@ class TestQFFT1D(QuatTestCase):
         self.assertEqual(r0.shape, (3, 8, 4))
         self.assertEqual(r1.shape, (3, 8, 4))
         self.assertFalse(np.allclose(r0, r1))
+
+
+class TestQFFT2D(QuatTestCase):
+    def test_qfft2_roundtrip(self):
+        from quat.signal import qfft2, iqfft2
+        x = np.random.randn(8, 8, 4)
+        X = qfft2(x)
+        self.assertEqual(X.shape, (8, 8, 4))
+        y = iqfft2(X)
+        self.assertTrue(np.allclose(x, y))
+
+    def test_qfft2_axes(self):
+        from quat.signal import qfft2
+        x = np.random.randn(4, 6, 4)
+        result = qfft2(x, axes=(0, 1))
+        self.assertEqual(result.shape, (4, 6, 4))
+
+    def test_qfft2_side(self):
+        from quat.signal import qfft2
+        x = np.random.randn(4, 4, 4)
+        L = qfft2(x, side='left')
+        R = qfft2(x, side='right')
+        self.assertFalse(np.allclose(L, R))

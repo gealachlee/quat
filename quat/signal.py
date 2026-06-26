@@ -39,3 +39,13 @@ def iqfft(X: np.ndarray, axis: int = -1, side: str = 'left') -> np.ndarray:
     result[..., 2] = S2.real
     result[..., 3] = S2.imag
     return result
+
+
+def qfft2(x: np.ndarray, axes=(-2, -1), side: str = 'left') -> np.ndarray:
+    X = qfft(x, axis=axes[0], side=side)
+    return qfft(X, axis=axes[1], side=side)
+
+
+def iqfft2(X: np.ndarray, axes=(-2, -1), side: str = 'left') -> np.ndarray:
+    x = iqfft(X, axis=axes[0], side=side)
+    return iqfft(x, axis=axes[1], side=side)
