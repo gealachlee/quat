@@ -41,6 +41,11 @@ Random (from quat.random):
 
 Interpolation (from quat.interpolate):
   slerp, slerp_vector
+
+Signal processing (from quat.signal):
+  qfft, iqfft, qfft2, iqfft2,
+  qconv, qconv2,
+  lowpass, highpass, bandpass, bandstop
 """
 from quat.algebra import _hamilton, _CONJ, _REAL_LEFT
 from quat.core import Quaternion, quat, _I, _J, _K, _ZERO, _R, _ONE_Q
@@ -67,6 +72,11 @@ from quat.random import (
     random_quat_matrix, random_quat_tensor,
 )
 from quat.interpolate import slerp, slerp_vector, squad
+from quat.signal import (
+    qfft, iqfft, qfft2, iqfft2,
+    qconv, qconv2,
+    lowpass, highpass, bandpass, bandstop,
+)
 
 __all__ = [
     'Quaternion', 'QuatVector', 'QuatMatrix', 'QuatTensor',
@@ -83,4 +93,7 @@ __all__ = [
     'random_quat', 'random_unit_quat', 'random_quat_vector',
     'random_quat_matrix', 'random_quat_tensor',
     'slerp', 'slerp_vector', 'squad',
+    'qfft', 'iqfft', 'qfft2', 'iqfft2',
+    'qconv', 'qconv2',
+    'lowpass', 'highpass', 'bandpass', 'bandstop',
 ]
