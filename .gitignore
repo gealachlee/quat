@@ -9,3 +9,4 @@ quat.egg-info/
 .pytest_cache/
 .benchmarks/
 docs/superpowers/
+dist/

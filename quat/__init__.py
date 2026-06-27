@@ -47,6 +47,8 @@ Signal processing (from quat.signal):
   qconv, qconv2,
   lowpass, highpass, bandpass, bandstop
 """
+
+__version__ = "0.1.0"
 from quat.algebra import _hamilton, _CONJ, _REAL_LEFT
 from quat.core import Quaternion, quat, _I, _J, _K, _ZERO, _R, _ONE_Q
 from quat.collections import (
@@ -96,4 +98,5 @@ __all__ = [
     'qfft', 'iqfft', 'qfft2', 'iqfft2',
     'qconv', 'qconv2',
     'lowpass', 'highpass', 'bandpass', 'bandstop',
+    '__version__',
 ]
