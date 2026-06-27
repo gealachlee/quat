@@ -13,6 +13,7 @@ from numbers import Real, Complex
 from quat.algebra import _hamilton, _CONJ, _REAL_LEFT, _HAMILTON_TENSOR
 from quat._checks import _vec_isnan, _vec_isinf, _vec_isfinite, _vec_isclose
 from quat.core import Quaternion
+from quat._arrayops import _data_copy, _to_array, _to_numpy, _dispatch_collection_ufunc
 
 
 # ---------------------------------------------------------------------------
@@ -75,15 +76,13 @@ class QuatVector:
 
     @property
     def data(self) -> np.ndarray:
-        return self._data.copy()
+        return _data_copy(self._data)
 
     def to_array(self) -> np.ndarray:
-        return self._data.copy()
+        return _to_array(self._data)
 
     def to_numpy(self, copy: bool = True, dtype=None) -> np.ndarray:
-        if copy is False and dtype is None:
-            return self._data
-        return np.array(self._data, dtype=dtype, copy=copy)
+        return _to_numpy(self._data, copy=copy, dtype=dtype)
 
     def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
         if copy is False and dtype is None:
@@ -91,20 +90,7 @@ class QuatVector:
         return np.array(self._data, dtype=dtype, copy=copy)
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        if method != '__call__' or kwargs.get('out') is not None:
-            return NotImplemented
-        a, b = (inputs[0], inputs[1]) if len(inputs) == 2 else (inputs[0], None)
-        if ufunc is np.add:
-            return a + b
-        if ufunc is np.subtract:
-            return a - b
-        if ufunc is np.multiply:
-            return a * b
-        if ufunc is np.true_divide or ufunc is np.floor_divide:
-            return a / b
-        if ufunc is np.negative:
-            return -a
-        return NotImplemented
+        return _dispatch_collection_ufunc(self, ufunc, method, *inputs, **kwargs)
 
     # -- component arrays (n,) ------------------------------------------------
     @property
@@ -384,15 +370,13 @@ class QuatMatrix:
 
     @property
     def data(self) -> np.ndarray:
-        return self._data.copy()
+        return _data_copy(self._data)
 
     def to_array(self) -> np.ndarray:
-        return self._data.copy()
+        return _to_array(self._data)
 
     def to_numpy(self, copy: bool = True, dtype=None) -> np.ndarray:
-        if copy is False and dtype is None:
-            return self._data
-        return np.array(self._data, dtype=dtype, copy=copy)
+        return _to_numpy(self._data, copy=copy, dtype=dtype)
 
     def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
         if copy is False and dtype is None:
@@ -400,20 +384,7 @@ class QuatMatrix:
         return np.array(self._data, dtype=dtype, copy=copy)
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        if method != '__call__' or kwargs.get('out') is not None:
-            return NotImplemented
-        a, b = (inputs[0], inputs[1]) if len(inputs) == 2 else (inputs[0], None)
-        if ufunc is np.add:
-            return a + b
-        if ufunc is np.subtract:
-            return a - b
-        if ufunc is np.multiply:
-            return a * b
-        if ufunc is np.true_divide or ufunc is np.floor_divide:
-            return a / b
-        if ufunc is np.negative:
-            return -a
-        return NotImplemented
+        return _dispatch_collection_ufunc(self, ufunc, method, *inputs, **kwargs)
 
     # -- component arrays (m, n) ---------------------------------------------
     @property
@@ -714,15 +685,13 @@ class QuatTensor:
 
     @property
     def data(self) -> np.ndarray:
-        return self._data.copy()
+        return _data_copy(self._data)
 
     def to_array(self) -> np.ndarray:
-        return self._data.copy()
+        return _to_array(self._data)
 
     def to_numpy(self, copy: bool = True, dtype=None) -> np.ndarray:
-        if copy is False and dtype is None:
-            return self._data
-        return np.array(self._data, dtype=dtype, copy=copy)
+        return _to_numpy(self._data, copy=copy, dtype=dtype)
 
     def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
         if copy is False and dtype is None:
@@ -730,20 +699,7 @@ class QuatTensor:
         return np.array(self._data, dtype=dtype, copy=copy)
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        if method != '__call__' or kwargs.get('out') is not None:
-            return NotImplemented
-        a, b = (inputs[0], inputs[1]) if len(inputs) == 2 else (inputs[0], None)
-        if ufunc is np.add:
-            return a + b
-        if ufunc is np.subtract:
-            return a - b
-        if ufunc is np.multiply:
-            return a * b
-        if ufunc is np.true_divide or ufunc is np.floor_divide:
-            return a / b
-        if ufunc is np.negative:
-            return -a
-        return NotImplemented
+        return _dispatch_collection_ufunc(self, ufunc, method, *inputs, **kwargs)
 
     # -- component tensors (n, H, W) -----------------------------------------
     @property
