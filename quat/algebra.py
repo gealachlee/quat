@@ -29,7 +29,10 @@ _HAMILTON_TENSOR[3, 0, 3] = 1;    _HAMILTON_TENSOR[3, 1, 2] = 1;    _HAMILTON_TE
 
 
 _SMALL_THRESHOLD = 500
+"""Total-element threshold below which component-wise arithmetic is fastest."""
+
 _LARGE_THRESHOLD = 5000
+"""Total-element threshold above which full einsum optimisation pays off."""
 
 
 def _hamilton(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
@@ -41,6 +44,18 @@ def _hamilton(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
       - large (>5000): einsum with full contraction-path optimisation
 
     Supports arbitrary leading-dimension broadcasting.
+
+    Example:
+        >>> from quat.algebra import _hamilton
+        >>> import numpy as np
+        >>> p = np.array([1., 0., 0., 0.])   # real unit
+        >>> q = np.array([[1., 2., 3., 4.]]) # batch of one
+        >>> _hamilton(p, q)
+        array([[1., 2., 3., 4.]])
+        >>> i = np.array([0., 1., 0., 0.])
+        >>> j = np.array([0., 0., 1., 0.])
+        >>> _hamilton(i, j)   # i*j = k
+        array([0., 0., 0., 1.])
     """
     total_elements = p.size + q.size
     if total_elements <= _SMALL_THRESHOLD:
