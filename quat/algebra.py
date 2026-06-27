@@ -46,7 +46,7 @@ def _hamilton(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
     if total_elements <= _SMALL_THRESHOLD:
         return _hamilton_component(p, q)
     if total_elements <= _LARGE_THRESHOLD:
-        return _hamilton_tensordot(p, q)
+        return _hamilton_einsum_noopt(p, q)
     return _hamilton_einsum(p, q)
 
 
@@ -63,7 +63,7 @@ def _hamilton_component(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
     return out
 
 
-def _hamilton_tensordot(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
+def _hamilton_einsum_noopt(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
     """Einsum without contraction-path optimisation — faster for medium batches
     where the optimisation overhead outweighs its benefit."""
     return np.einsum('rck,...c,...k->...r', _HAMILTON_TENSOR, p, q, optimize=False)
