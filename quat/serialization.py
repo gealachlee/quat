@@ -24,10 +24,12 @@ from quat.collections import QuatVector, QuatMatrix, QuatTensor
 
 
 def to_json(q: Quaternion | QuatVector | QuatMatrix | QuatTensor) -> str:
+    """Serialize a quaternion object to JSON.  Delegates to ``q.to_json()``."""
     return q.to_json()
 
 
 def from_json(s: str) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
+    """Deserialize a JSON string.  Infers target type from the ``"type"`` field."""
     d = _json.loads(s)
     cls_map = {
         "Quaternion": Quaternion,
@@ -39,10 +41,12 @@ def from_json(s: str) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
 
 
 def to_bytes(q: Quaternion | QuatVector | QuatMatrix | QuatTensor) -> bytes:
+    """Serialize a quaternion object to compact binary.  Delegates to ``q.to_bytes()``."""
     return q.to_bytes()
 
 
 def from_bytes(b: bytes) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
+    """Deserialize binary bytes.  Reads type_id from header, delegates to class method."""
     type_id = _struct.unpack_from('<i', b, 0)[0]
     cls_map = {
         0: Quaternion,
