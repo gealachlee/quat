@@ -12,7 +12,7 @@ from quat.algebra import _hamilton, _CONJ, _REAL_LEFT, _HAMILTON_TENSOR
 from quat._checks import _vec_isnan, _vec_isinf, _vec_isfinite, _vec_isclose
 from quat.core import Quaternion
 from quat._arrayops import _data_copy, _to_array, _to_numpy, _dispatch_collection_ufunc
-from quat._serialize import _serialize_to_json, _serialize_bytes_shaped
+from quat._serialize import _serialize_to_json, _serialize_bytes_shaped, _deserialize_from_json, _deserialize_bytes_shaped
 
 
 # ---------------------------------------------------------------------------
@@ -224,12 +224,10 @@ class QuatVector:
 
     @classmethod
     def from_json(cls, s: str) -> "QuatVector":
-        from quat._serialize import _deserialize_from_json
         return _deserialize_from_json(s, {"QuatVector": cls})
 
     @classmethod
     def from_bytes(cls, b: bytes) -> "QuatVector":
-        from quat._serialize import _deserialize_bytes_shaped
         return _deserialize_bytes_shaped(b, {1: cls})
 
     # -- matrix representation -----------------------------------------------
@@ -521,12 +519,10 @@ class QuatMatrix:
 
     @classmethod
     def from_json(cls, s: str) -> "QuatMatrix":
-        from quat._serialize import _deserialize_from_json
         return _deserialize_from_json(s, {"QuatMatrix": cls})
 
     @classmethod
     def from_bytes(cls, b: bytes) -> "QuatMatrix":
-        from quat._serialize import _deserialize_bytes_shaped
         return _deserialize_bytes_shaped(b, {2: cls})
 
     # -- matrix representations ----------------------------------------------
@@ -831,12 +827,10 @@ class QuatTensor:
 
     @classmethod
     def from_json(cls, s: str) -> "QuatTensor":
-        from quat._serialize import _deserialize_from_json
         return _deserialize_from_json(s, {"QuatTensor": cls})
 
     @classmethod
     def from_bytes(cls, b: bytes) -> "QuatTensor":
-        from quat._serialize import _deserialize_bytes_shaped
         return _deserialize_bytes_shaped(b, {3: cls})
 
     # -- unfolding -----------------------------------------------------------
