@@ -11,6 +11,7 @@ import numpy as np
 from typing import Tuple, List, Generator
 from numbers import Real, Complex
 from quat.algebra import _hamilton, _CONJ, _REAL_LEFT, _HAMILTON_TENSOR
+from quat._checks import _vec_isnan, _vec_isinf, _vec_isfinite, _vec_isclose
 from quat.core import Quaternion
 
 
@@ -216,18 +217,18 @@ class QuatVector:
         return self / n
 
     def isnan(self) -> np.ndarray:
-        return np.any(np.isnan(self._data), axis=-1)
+        return _vec_isnan(self._data)
 
     def isinf(self) -> np.ndarray:
-        return np.any(np.isinf(self._data), axis=-1)
+        return _vec_isinf(self._data)
 
     def isfinite(self) -> np.ndarray:
-        return np.all(np.isfinite(self._data), axis=-1)
+        return _vec_isfinite(self._data)
 
     def isclose(self, other: QuatVector, rtol: float = 1e-05, atol: float = 1e-08) -> np.ndarray:
         if len(self) != len(other):
             raise ValueError("Size mismatch")
-        return np.isclose(self._data, other._data, rtol=rtol, atol=atol).all(axis=-1)
+        return _vec_isclose(self._data, other._data, rtol, atol)
 
     # -- serialization --------------------------------------------------------
     def to_json(self) -> str:
@@ -535,18 +536,18 @@ class QuatMatrix:
         return self.adjoint()
 
     def isnan(self) -> np.ndarray:
-        return np.any(np.isnan(self._data), axis=-1)
+        return _vec_isnan(self._data)
 
     def isinf(self) -> np.ndarray:
-        return np.any(np.isinf(self._data), axis=-1)
+        return _vec_isinf(self._data)
 
     def isfinite(self) -> np.ndarray:
-        return np.all(np.isfinite(self._data), axis=-1)
+        return _vec_isfinite(self._data)
 
     def isclose(self, other: QuatMatrix, rtol: float = 1e-05, atol: float = 1e-08) -> np.ndarray:
         if self.shape != other.shape:
             raise ValueError("Shape mismatch")
-        return np.isclose(self._data, other._data, rtol=rtol, atol=atol).all(axis=-1)
+        return _vec_isclose(self._data, other._data, rtol, atol)
 
     # -- serialization --------------------------------------------------------
     def to_json(self) -> str:
@@ -867,18 +868,18 @@ class QuatTensor:
         return float(conj_sum[0])
 
     def isnan(self) -> np.ndarray:
-        return np.any(np.isnan(self._data), axis=-1)
+        return _vec_isnan(self._data)
 
     def isinf(self) -> np.ndarray:
-        return np.any(np.isinf(self._data), axis=-1)
+        return _vec_isinf(self._data)
 
     def isfinite(self) -> np.ndarray:
-        return np.all(np.isfinite(self._data), axis=-1)
+        return _vec_isfinite(self._data)
 
     def isclose(self, other: QuatTensor, rtol: float = 1e-05, atol: float = 1e-08) -> np.ndarray:
         if self.shape != other.shape:
             raise ValueError("Shape mismatch")
-        return np.isclose(self._data, other._data, rtol=rtol, atol=atol).all(axis=-1)
+        return _vec_isclose(self._data, other._data, rtol, atol)
 
     # -- serialization --------------------------------------------------------
     def to_json(self) -> str:
