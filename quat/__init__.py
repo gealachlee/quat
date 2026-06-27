@@ -40,7 +40,7 @@ Random (from quat.random):
   random_quat_matrix, random_quat_tensor
 
 Interpolation (from quat.interpolate):
-  slerp, slerp_vector
+  slerp, slerp_vector, squad
 
 Signal processing (from quat.signal):
   qfft, iqfft, qfft2, iqfft2,

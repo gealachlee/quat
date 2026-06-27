@@ -4,7 +4,6 @@
 #!/usr/bin/env python3
 """Quaternion Algebra Library --- Demo & Usage Examples"""
 
-import sys; sys.path.insert(0, '/sessions/practical-eloquent-bell/mnt/Quaternion')
 from quat import (
     Quaternion, QuatVector, QuatMatrix, QuatTensor,
     quat, _I, _J, _K, _ZERO, _R, _ONE_Q,

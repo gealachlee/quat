@@ -153,8 +153,9 @@ All accept a NumPy `Generator`, seed integer, or `None`.
 ### Internals (`quat.algebra`)
 
 `_hamilton(p, q)` — vectorized Hamilton product (the core multiplication kernel).
-Uses a component-wise implementation for small batches and automatically switches
-to an einsum-based kernel when the total number of elements exceeds 2000.
+Uses a three-tier dispatch: component-wise arithmetic for small batches (≤500 elements),
+einsum without contraction-path optimisation for medium batches (500–5000), and
+einsum with full optimisation for large batches (>5000).
 `_CONJ` — conjugate mask `[1, -1, -1, -1]`.
 `_REAL_LEFT` — `(4,4,4)` tensor mapping a quaternion to its 4×4 left-regular
 real representation.
