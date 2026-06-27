@@ -5,8 +5,6 @@
 """Quaternion collection types — QuatVector, QuatMatrix, QuatTensor."""
 from __future__ import annotations
 
-import json as _json
-import struct as _struct
 import numpy as np
 from typing import Tuple, List, Generator
 from numbers import Real, Complex
@@ -14,6 +12,7 @@ from quat.algebra import _hamilton, _CONJ, _REAL_LEFT, _HAMILTON_TENSOR
 from quat._checks import _vec_isnan, _vec_isinf, _vec_isfinite, _vec_isclose
 from quat.core import Quaternion
 from quat._arrayops import _data_copy, _to_array, _to_numpy, _dispatch_collection_ufunc
+from quat._serialize import _serialize_to_json, _serialize_bytes_shaped
 
 
 # ---------------------------------------------------------------------------
@@ -218,27 +217,20 @@ class QuatVector:
 
     # -- serialization --------------------------------------------------------
     def to_json(self) -> str:
-        return _json.dumps({"type": "QuatVector", "data": self._data.tolist()})
+        return _serialize_to_json("QuatVector", self._data)
 
     def to_bytes(self) -> bytes:
-        data = self._data.astype(np.float64)
-        shape = np.array(data.shape, dtype=np.int32)
-        return _struct.pack('<ii', 1, len(shape)) + shape.tobytes() + data.tobytes()
+        return _serialize_bytes_shaped(1, self._data)
 
     @classmethod
     def from_json(cls, s: str) -> "QuatVector":
-        d = _json.loads(s)
-        return cls(np.array(d["data"], dtype=float))
+        from quat._serialize import _deserialize_from_json
+        return _deserialize_from_json(s, {"QuatVector": cls})
 
     @classmethod
     def from_bytes(cls, b: bytes) -> "QuatVector":
-        type_id, ndim = _struct.unpack_from('<ii', b, 0)
-        offset = 8
-        shape = np.frombuffer(b[offset:offset + ndim * 4], dtype=np.int32)
-        offset += ndim * 4
-        size = int(np.prod(shape))
-        data = np.frombuffer(b[offset:offset + size * 8], dtype=np.float64).reshape(shape)
-        return cls(data)
+        from quat._serialize import _deserialize_bytes_shaped
+        return _deserialize_bytes_shaped(b, {1: cls})
 
     # -- matrix representation -----------------------------------------------
     def to_complex_matrix(self) -> np.ndarray:
@@ -522,27 +514,20 @@ class QuatMatrix:
 
     # -- serialization --------------------------------------------------------
     def to_json(self) -> str:
-        return _json.dumps({"type": "QuatMatrix", "data": self._data.tolist()})
+        return _serialize_to_json("QuatMatrix", self._data)
 
     def to_bytes(self) -> bytes:
-        data = self._data.astype(np.float64)
-        shape = np.array(data.shape, dtype=np.int32)
-        return _struct.pack('<ii', 2, len(shape)) + shape.tobytes() + data.tobytes()
+        return _serialize_bytes_shaped(2, self._data)
 
     @classmethod
     def from_json(cls, s: str) -> "QuatMatrix":
-        d = _json.loads(s)
-        return cls(np.array(d["data"], dtype=float))
+        from quat._serialize import _deserialize_from_json
+        return _deserialize_from_json(s, {"QuatMatrix": cls})
 
     @classmethod
     def from_bytes(cls, b: bytes) -> "QuatMatrix":
-        type_id, ndim = _struct.unpack_from('<ii', b, 0)
-        offset = 8
-        shape = np.frombuffer(b[offset:offset + ndim * 4], dtype=np.int32)
-        offset += ndim * 4
-        size = int(np.prod(shape))
-        data = np.frombuffer(b[offset:offset + size * 8], dtype=np.float64).reshape(shape)
-        return cls(data)
+        from quat._serialize import _deserialize_bytes_shaped
+        return _deserialize_bytes_shaped(b, {2: cls})
 
     # -- matrix representations ----------------------------------------------
     def to_complex_matrix(self) -> np.ndarray:
@@ -839,27 +824,20 @@ class QuatTensor:
 
     # -- serialization --------------------------------------------------------
     def to_json(self) -> str:
-        return _json.dumps({"type": "QuatTensor", "data": self._data.tolist()})
+        return _serialize_to_json("QuatTensor", self._data)
 
     def to_bytes(self) -> bytes:
-        data = self._data.astype(np.float64)
-        shape = np.array(data.shape, dtype=np.int32)
-        return _struct.pack('<ii', 3, len(shape)) + shape.tobytes() + data.tobytes()
+        return _serialize_bytes_shaped(3, self._data)
 
     @classmethod
     def from_json(cls, s: str) -> "QuatTensor":
-        d = _json.loads(s)
-        return cls(np.array(d["data"], dtype=float))
+        from quat._serialize import _deserialize_from_json
+        return _deserialize_from_json(s, {"QuatTensor": cls})
 
     @classmethod
     def from_bytes(cls, b: bytes) -> "QuatTensor":
-        type_id, ndim = _struct.unpack_from('<ii', b, 0)
-        offset = 8
-        shape = np.frombuffer(b[offset:offset + ndim * 4], dtype=np.int32)
-        offset += ndim * 4
-        size = int(np.prod(shape))
-        data = np.frombuffer(b[offset:offset + size * 8], dtype=np.float64).reshape(shape)
-        return cls(data)
+        from quat._serialize import _deserialize_bytes_shaped
+        return _deserialize_bytes_shaped(b, {3: cls})
 
     # -- unfolding -----------------------------------------------------------
     def unfold(self, mode: int) -> QuatMatrix:

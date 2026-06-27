@@ -24,12 +24,10 @@ from quat.collections import QuatVector, QuatMatrix, QuatTensor
 
 
 def to_json(q: Quaternion | QuatVector | QuatMatrix | QuatTensor) -> str:
-    """Serialize to JSON.  Delegates to ``q.to_json()``."""
     return q.to_json()
 
 
 def from_json(s: str) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
-    """Deserialize from JSON.  Infers type from the stored type name."""
     d = _json.loads(s)
     cls_map = {
         "Quaternion": Quaternion,
@@ -37,17 +35,14 @@ def from_json(s: str) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
         "QuatMatrix": QuatMatrix,
         "QuatTensor": QuatTensor,
     }
-    cls = cls_map[d["type"]]
-    return cls(np.array(d["data"], dtype=float))
+    return cls_map[d["type"]](np.array(d["data"], dtype=float))
 
 
 def to_bytes(q: Quaternion | QuatVector | QuatMatrix | QuatTensor) -> bytes:
-    """Serialize to binary.  Delegates to ``q.to_bytes()``."""
     return q.to_bytes()
 
 
 def from_bytes(b: bytes) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
-    """Deserialize from binary.  Reads type_id from header bytes."""
     type_id = _struct.unpack_from('<i', b, 0)[0]
     cls_map = {
         0: Quaternion,
@@ -61,15 +56,7 @@ def from_bytes(b: bytes) -> Quaternion | QuatVector | QuatMatrix | QuatTensor:
 def to_scipy_rotation(q: Quaternion | QuatVector):
     """Convert to ``scipy.spatial.transform.Rotation``.
 
-    scipy uses ``(x, y, z, w)``; our order is ``(w, x, y, z)`` ≡ ``(r, i, j, k)``.
-
-    Example:
-        >>> from quat import Quaternion, to_scipy_rotation
-        >>> import numpy as np
-        >>> q = Quaternion.from_axis_angle((0, 0, 1), np.pi / 2)
-        >>> rot = to_scipy_rotation(q)
-        >>> rot.as_quat()
-        array([0.        , 0.        , 0.70710678, 0.70710678])
+    scipy uses ``(x, y, z, w)``; our order is ``(w, x, y, z)`` = ``(r, i, j, k)``.
     """
     from scipy.spatial.transform import Rotation
     from quat.utils import to_ndarray
