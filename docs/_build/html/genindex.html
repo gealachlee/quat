@@ -1,0 +1,993 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="#"><link rel="search" title="Search" href="search.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 --><title>Index - quat Documentation</title>
+<link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">quat Documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">quat Documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="quat.core.html">Quaternion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quat.collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quat.algebra.html">Algebra Primitives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quat.signal.html">Signal Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quat.linalg.html">Linear Algebra</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quat.interpolate.html">Interpolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quat.random.html">Random</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quat.utils.html">Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quat.serialization.html">Serialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quat.optimized.html">Optimized Kernels</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          
+<section class="genindex-section">
+  <h1 id="index">Index</h1>
+  <div class="genindex-jumpbox"><a href="#_"><strong>_</strong></a> | <a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#F"><strong>F</strong></a> | <a href="#H"><strong>H</strong></a> | <a href="#I"><strong>I</strong></a> | <a href="#J"><strong>J</strong></a> | <a href="#K"><strong>K</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#O"><strong>O</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#Q"><strong>Q</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#T"><strong>T</strong></a> | <a href="#U"><strong>U</strong></a> | <a href="#Z"><strong>Z</strong></a></div>
+</section>
+<section id="_" class="genindex-section">
+  <h2>_</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.core.html#quat.core.Quaternion.__init__">__init__() (quat.core.Quaternion method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="A" class="genindex-section">
+  <h2>A</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.adjoint">adjoint() (quat.collections.QuatMatrix method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="B" class="genindex-section">
+  <h2>B</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.signal.html#quat.signal.bandpass">bandpass() (in module quat.signal)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.signal.html#quat.signal.bandstop">bandstop() (in module quat.signal)</a>
+</li>
+        <li><a href="quat.utils.html#quat.utils.broadcast_quat_shapes">broadcast_quat_shapes() (in module quat.utils)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="C" class="genindex-section">
+  <h2>C</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.col">col() (quat.collections.QuatMatrix method)</a>
+</li>
+        <li><a href="quat.core.html#quat.core.Quaternion.commutator">commutator() (quat.core.Quaternion method)</a>
+</li>
+        <li><a href="quat.core.html#quat.core.Quaternion.components">components (quat.core.Quaternion property)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.linalg.html#quat.linalg.condition_number">condition_number() (in module quat.linalg)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.conjugate">conjugate() (quat.collections.QuatMatrix method)</a>
+
+        <ul>
+          <li><a href="quat.core.html#quat.core.Quaternion.conjugate">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.optimized.html#quat.optimized.conjugate_batch">conjugate_batch() (in module quat.optimized)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="D" class="genindex-section">
+  <h2>D</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.data">data (quat.collections.QuatMatrix property)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.data">(quat.collections.QuatTensor property)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.data">(quat.collections.QuatVector property)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.data">(quat.core.Quaternion property)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.linalg.html#quat.linalg.det">det() (in module quat.linalg)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.dict_to_quat_matrix">dict_to_quat_matrix() (in module quat.collections)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.dict_to_quat_tensor">dict_to_quat_tensor() (in module quat.collections)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="E" class="genindex-section">
+  <h2>E</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.core.html#quat.core.Quaternion.exp">exp() (quat.core.Quaternion method)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.eye">eye() (quat.collections.QuatMatrix class method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="F" class="genindex-section">
+  <h2>F</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.core.html#quat.core.Quaternion.from_axis_angle">from_axis_angle() (quat.core.Quaternion class method)</a>
+</li>
+        <li><a href="quat.serialization.html#quat.serialization.from_bytes">from_bytes() (in module quat.serialization)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatMatrix.from_bytes">(quat.collections.QuatMatrix class method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.from_bytes">(quat.collections.QuatTensor class method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.from_bytes">(quat.collections.QuatVector class method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.from_bytes">(quat.core.Quaternion class method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.from_complex_matrix">from_complex_matrix() (quat.collections.QuatMatrix class method)</a>
+
+        <ul>
+          <li><a href="quat.core.html#quat.core.Quaternion.from_complex_matrix">(quat.core.Quaternion class method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.utils.html#quat.utils.from_components">from_components() (in module quat.utils)</a>
+</li>
+        <li><a href="quat.core.html#quat.core.Quaternion.from_euler">from_euler() (quat.core.Quaternion class method)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.serialization.html#quat.serialization.from_json">from_json() (in module quat.serialization)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatMatrix.from_json">(quat.collections.QuatMatrix class method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.from_json">(quat.collections.QuatTensor class method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.from_json">(quat.collections.QuatVector class method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.from_json">(quat.core.Quaternion class method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.utils.html#quat.utils.from_ndarray">from_ndarray() (in module quat.utils)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.from_real_matrix_left">from_real_matrix_left() (quat.collections.QuatMatrix class method)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.from_real_matrix_left">(quat.collections.QuatVector class method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.from_real_matrix_left">(quat.core.Quaternion class method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.serialization.html#quat.serialization.from_scipy_rotation">from_scipy_rotation() (in module quat.serialization)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="H" class="genindex-section">
+  <h2>H</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.H">H (quat.collections.QuatMatrix property)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.optimized.html#quat.optimized.hamilton_einsum">hamilton_einsum() (in module quat.optimized)</a>
+</li>
+        <li><a href="quat.signal.html#quat.signal.highpass">highpass() (in module quat.signal)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="I" class="genindex-section">
+  <h2>I</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.i">i (quat.collections.QuatMatrix property)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.i">(quat.collections.QuatTensor property)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.i">(quat.collections.QuatVector property)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.i">(quat.core.Quaternion property)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.core.html#quat.core.Quaternion.imag">imag (quat.core.Quaternion property)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatTensor.inner">inner() (quat.collections.QuatTensor method)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.inner">(quat.collections.QuatVector method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.core.html#quat.core.Quaternion.inverse">inverse() (quat.core.Quaternion method)</a>
+</li>
+        <li><a href="quat.signal.html#quat.signal.iqfft">iqfft() (in module quat.signal)</a>
+</li>
+        <li><a href="quat.signal.html#quat.signal.iqfft2">iqfft2() (in module quat.signal)</a>
+</li>
+        <li><a href="quat.utils.html#quat.utils.isclose">isclose() (in module quat.utils)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatMatrix.isclose">(quat.collections.QuatMatrix method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.isclose">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.isclose">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.isclose">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.utils.html#quat.utils.isfinite">isfinite() (in module quat.utils)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatMatrix.isfinite">(quat.collections.QuatMatrix method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.isfinite">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.isfinite">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.isfinite">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.utils.html#quat.utils.isinf">isinf() (in module quat.utils)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatMatrix.isinf">(quat.collections.QuatMatrix method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.isinf">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.isinf">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.isinf">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.utils.html#quat.utils.isnan">isnan() (in module quat.utils)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatMatrix.isnan">(quat.collections.QuatMatrix method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.isnan">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.isnan">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.isnan">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="J" class="genindex-section">
+  <h2>J</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.j">j (quat.collections.QuatMatrix property)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.j">(quat.collections.QuatTensor property)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.j">(quat.collections.QuatVector property)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.j">(quat.core.Quaternion property)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="K" class="genindex-section">
+  <h2>K</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.k">k (quat.collections.QuatMatrix property)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.k">(quat.collections.QuatTensor property)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.k">(quat.collections.QuatVector property)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.k">(quat.core.Quaternion property)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="L" class="genindex-section">
+  <h2>L</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.labels_to_quat_vector">labels_to_quat_vector() (in module quat.collections)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.core.html#quat.core.Quaternion.log">log() (quat.core.Quaternion method)</a>
+</li>
+        <li><a href="quat.signal.html#quat.signal.lowpass">lowpass() (in module quat.signal)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="M" class="genindex-section">
+  <h2>M</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatTensor.mode_1_product">mode_1_product() (quat.collections.QuatTensor method)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatTensor.mode_2_product">mode_2_product() (quat.collections.QuatTensor method)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatTensor.mode_3_product">mode_3_product() (quat.collections.QuatTensor method)</a>
+</li>
+        <li>
+    module
+
+        <ul>
+          <li><a href="quat.algebra.html#module-quat.algebra">quat.algebra</a>
+</li>
+          <li><a href="quat.collections.html#module-quat.collections">quat.collections</a>
+</li>
+          <li><a href="quat.core.html#module-quat.core">quat.core</a>
+</li>
+          <li><a href="quat.interpolate.html#module-quat.interpolate">quat.interpolate</a>
+</li>
+          <li><a href="quat.linalg.html#module-quat.linalg">quat.linalg</a>
+</li>
+          <li><a href="quat.optimized.html#module-quat.optimized">quat.optimized</a>
+</li>
+          <li><a href="quat.random.html#module-quat.random">quat.random</a>
+</li>
+          <li><a href="quat.serialization.html#module-quat.serialization">quat.serialization</a>
+</li>
+          <li><a href="quat.signal.html#module-quat.signal">quat.signal</a>
+</li>
+          <li><a href="quat.utils.html#module-quat.utils">quat.utils</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="N" class="genindex-section">
+  <h2>N</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatTensor.ndim">ndim (quat.collections.QuatTensor property)</a>
+</li>
+        <li><a href="quat.linalg.html#quat.linalg.norm">norm() (in module quat.linalg)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatMatrix.norm">(quat.collections.QuatMatrix method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.norm">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.norm">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.norm">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.norm_squared">norm_squared() (quat.collections.QuatMatrix method)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.norm_squared">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.norm_squared">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.norm_squared">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.optimized.html#quat.optimized.norm_squared_batch">norm_squared_batch() (in module quat.optimized)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatVector.normalize">normalize() (quat.collections.QuatVector method)</a>
+
+        <ul>
+          <li><a href="quat.core.html#quat.core.Quaternion.normalize">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.optimized.html#quat.optimized.normalize_batch">normalize_batch() (in module quat.optimized)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="O" class="genindex-section">
+  <h2>O</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.core.html#quat.core.Quaternion.one_q">one_q() (quat.core.Quaternion class method)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatVector.ones">ones() (quat.collections.QuatVector class method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="P" class="genindex-section">
+  <h2>P</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.core.html#quat.core.Quaternion.pow">pow() (quat.core.Quaternion method)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.linalg.html#quat.linalg.pseudo_inverse">pseudo_inverse() (in module quat.linalg)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="Q" class="genindex-section">
+  <h2>Q</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.signal.html#quat.signal.qconv">qconv() (in module quat.signal)</a>
+</li>
+        <li><a href="quat.signal.html#quat.signal.qconv2">qconv2() (in module quat.signal)</a>
+</li>
+        <li><a href="quat.signal.html#quat.signal.qfft">qfft() (in module quat.signal)</a>
+</li>
+        <li><a href="quat.signal.html#quat.signal.qfft2">qfft2() (in module quat.signal)</a>
+</li>
+        <li><a href="quat.core.html#quat.core.quat">quat() (in module quat.core)</a>
+</li>
+        <li>
+    quat.algebra
+
+        <ul>
+          <li><a href="quat.algebra.html#module-quat.algebra">module</a>
+</li>
+        </ul></li>
+        <li>
+    quat.collections
+
+        <ul>
+          <li><a href="quat.collections.html#module-quat.collections">module</a>
+</li>
+        </ul></li>
+        <li>
+    quat.core
+
+        <ul>
+          <li><a href="quat.core.html#module-quat.core">module</a>
+</li>
+        </ul></li>
+        <li>
+    quat.interpolate
+
+        <ul>
+          <li><a href="quat.interpolate.html#module-quat.interpolate">module</a>
+</li>
+        </ul></li>
+        <li>
+    quat.linalg
+
+        <ul>
+          <li><a href="quat.linalg.html#module-quat.linalg">module</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li>
+    quat.optimized
+
+        <ul>
+          <li><a href="quat.optimized.html#module-quat.optimized">module</a>
+</li>
+        </ul></li>
+        <li>
+    quat.random
+
+        <ul>
+          <li><a href="quat.random.html#module-quat.random">module</a>
+</li>
+        </ul></li>
+        <li>
+    quat.serialization
+
+        <ul>
+          <li><a href="quat.serialization.html#module-quat.serialization">module</a>
+</li>
+        </ul></li>
+        <li>
+    quat.signal
+
+        <ul>
+          <li><a href="quat.signal.html#module-quat.signal">module</a>
+</li>
+        </ul></li>
+        <li>
+    quat.utils
+
+        <ul>
+          <li><a href="quat.utils.html#module-quat.utils">module</a>
+</li>
+        </ul></li>
+        <li><a href="quat.optimized.html#quat.optimized.quat_matmul">quat_matmul() (in module quat.optimized)</a>
+</li>
+        <li><a href="quat.core.html#quat.core.Quaternion">Quaternion (class in quat.core)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatVector.quaternions">quaternions() (quat.collections.QuatVector method)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix">QuatMatrix (class in quat.collections)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatTensor">QuatTensor (class in quat.collections)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatVector">QuatVector (class in quat.collections)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="R" class="genindex-section">
+  <h2>R</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.core.html#quat.core.Quaternion.r">r (quat.core.Quaternion property)</a>
+</li>
+        <li><a href="quat.random.html#quat.random.random_quat">random_quat() (in module quat.random)</a>
+</li>
+        <li><a href="quat.random.html#quat.random.random_quat_matrix">random_quat_matrix() (in module quat.random)</a>
+</li>
+        <li><a href="quat.random.html#quat.random.random_quat_tensor">random_quat_tensor() (in module quat.random)</a>
+</li>
+        <li><a href="quat.random.html#quat.random.random_quat_vector">random_quat_vector() (in module quat.random)</a>
+</li>
+        <li><a href="quat.random.html#quat.random.random_unit_quat">random_unit_quat() (in module quat.random)</a>
+</li>
+        <li><a href="quat.linalg.html#quat.linalg.rank">rank() (in module quat.linalg)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.core.html#quat.core.Quaternion.re_inner">re_inner() (quat.core.Quaternion method)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.real">real (quat.collections.QuatMatrix property)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.real">(quat.collections.QuatTensor property)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.real">(quat.collections.QuatVector property)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.real">(quat.core.Quaternion property)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.core.html#quat.core.Quaternion.rotate_vector">rotate_vector() (quat.core.Quaternion method)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.row">row() (quat.collections.QuatMatrix method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="S" class="genindex-section">
+  <h2>S</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.shape">shape (quat.collections.QuatMatrix property)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.shape">(quat.collections.QuatTensor property)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.shape">(quat.collections.QuatVector property)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.shape">(quat.core.Quaternion property)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.interpolate.html#quat.interpolate.slerp">slerp() (in module quat.interpolate)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.interpolate.html#quat.interpolate.slerp_vector">slerp_vector() (in module quat.interpolate)</a>
+</li>
+        <li><a href="quat.linalg.html#quat.linalg.solve">solve() (in module quat.linalg)</a>
+</li>
+        <li><a href="quat.interpolate.html#quat.interpolate.squad">squad() (in module quat.interpolate)</a>
+</li>
+        <li><a href="quat.utils.html#quat.utils.stack_quat">stack_quat() (in module quat.utils)</a>
+</li>
+        <li><a href="quat.linalg.html#quat.linalg.svd">svd() (in module quat.linalg)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="T" class="genindex-section">
+  <h2>T</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.T">T (quat.collections.QuatMatrix property)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.to_array">to_array() (quat.collections.QuatMatrix method)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.to_array">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.to_array">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.to_array">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.core.html#quat.core.Quaternion.to_axis_angle">to_axis_angle() (quat.core.Quaternion method)</a>
+</li>
+        <li><a href="quat.serialization.html#quat.serialization.to_bytes">to_bytes() (in module quat.serialization)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatMatrix.to_bytes">(quat.collections.QuatMatrix method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.to_bytes">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.to_bytes">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.to_bytes">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.to_complex_matrix">to_complex_matrix() (quat.collections.QuatMatrix method)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.to_complex_matrix">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.to_complex_matrix">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.to_complex_matrix">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.core.html#quat.core.Quaternion.to_euler">to_euler() (quat.core.Quaternion method)</a>
+</li>
+        <li><a href="quat.serialization.html#quat.serialization.to_json">to_json() (in module quat.serialization)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatMatrix.to_json">(quat.collections.QuatMatrix method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.to_json">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.to_json">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.to_json">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.utils.html#quat.utils.to_ndarray">to_ndarray() (in module quat.utils)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.to_numpy">to_numpy() (quat.collections.QuatMatrix method)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.to_numpy">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.to_numpy">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.to_numpy">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.to_real_matrix_left">to_real_matrix_left() (quat.collections.QuatMatrix method)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.to_real_matrix_left">(quat.collections.QuatTensor method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.to_real_matrix_left">(quat.collections.QuatVector method)</a>
+</li>
+          <li><a href="quat.core.html#quat.core.Quaternion.to_real_matrix_left">(quat.core.Quaternion method)</a>
+</li>
+        </ul></li>
+        <li><a href="quat.core.html#quat.core.Quaternion.to_real_matrix_right">to_real_matrix_right() (quat.core.Quaternion method)</a>
+</li>
+        <li><a href="quat.serialization.html#quat.serialization.to_scipy_rotation">to_scipy_rotation() (in module quat.serialization)</a>
+</li>
+        <li><a href="quat.linalg.html#quat.linalg.trace">trace() (in module quat.linalg)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.transpose">transpose() (quat.collections.QuatMatrix method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="U" class="genindex-section">
+  <h2>U</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.collections.html#quat.collections.QuatTensor.unfold">unfold() (quat.collections.QuatTensor method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="Z" class="genindex-section">
+  <h2>Z</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="quat.core.html#quat.core.Quaternion.zero">zero() (quat.core.Quaternion class method)</a>
+</li>
+        <li><a href="quat.collections.html#quat.collections.QuatMatrix.zeros">zeros() (quat.collections.QuatMatrix class method)</a>
+
+        <ul>
+          <li><a href="quat.collections.html#quat.collections.QuatTensor.zeros">(quat.collections.QuatTensor class method)</a>
+</li>
+          <li><a href="quat.collections.html#quat.collections.QuatVector.zeros">(quat.collections.QuatVector class method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2026
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    </body>
+</html>

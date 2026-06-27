@@ -2,10 +2,10 @@ __pycache__/
 *.pyc
 *.pyo
 ../ksqmm/
-docs/_build/
 data/
 quat.egg-info/
 .superpowers/
 .mypy_cache/
 .pytest_cache/
 .benchmarks/
+docs/superpowers/
