@@ -18,7 +18,7 @@ picks the fastest strategy at every data size.  All in pure Python, zero C
 extensions.
 
 ```
-pip install quat
+pip install quat-numpy
 ```
 
 ## Why quat?
@@ -171,7 +171,7 @@ without copying.  `.to_complex_matrix()` and `.to_real_matrix_left()` use
 ## Install
 
 ```bash
-pip install quat
+pip install quat-numpy
 ```
 
 Requires **Python ≥ 3.9**, **NumPy ≥ 1.21**.  Optional `scipy` for

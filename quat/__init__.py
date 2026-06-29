@@ -48,7 +48,7 @@ Signal processing (from quat.signal):
   lowpass, highpass, bandpass, bandstop
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 from quat.algebra import _hamilton, _CONJ, _REAL_LEFT
 from quat.core import Quaternion, quat, _I, _J, _K, _ZERO, _R, _ONE_Q
 from quat.collections import (
