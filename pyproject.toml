@@ -9,6 +9,7 @@ description = "Quaternion algebra library with vector/matrix/tensor collections,
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.9"
+authors = [{name = "gealachlee", email = "gealachlee@users.noreply.github.com"}]
 dependencies = ["numpy>=1.21"]
 classifiers = [
     "Development Status :: 3 - Alpha",

@@ -10,3 +10,4 @@ quat.egg-info/
 .benchmarks/
 docs/superpowers/
 dist/
+.idea/
