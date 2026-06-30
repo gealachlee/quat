@@ -102,9 +102,135 @@ def _deserialize_bytes_shaped(b: bytes, cls_map: dict) -> object:
     return cls_map[type_id](data)
 
 
-# ---------------------------------------------------------------------------
-class QuatVector:
+# =============================================================================
+# Base collection
+# =============================================================================
+
+
+class _BaseCollection:
+    """Shared base for QuatVector, QuatMatrix, QuatTensor.
+
+    Provides NumPy interop, component accessors, scalar arithmetic,
+    norm/validation, and JSON/binary serialization.  Subclasses define
+    their own ``__init__``, ``shape``, ``__len__``, ``__getitem__``,
+    ``__add__``, ``__sub__``, ``__mul__``, ``norm_squared``, and
+    type-specific methods.
+    """
     __slots__ = ('_data',)
+
+    _TYPE_NAME: str = ""
+    _TYPE_ID: int = -1
+
+    # -- NumPy interop --------------------------------------------------------
+
+    @property
+    def data(self) -> np.ndarray:
+        return _data_copy(self._data)
+
+    def to_array(self) -> np.ndarray:
+        return _to_array(self._data)
+
+    def to_numpy(self, copy: bool = True, dtype=None) -> np.ndarray:
+        return _to_numpy(self._data, copy=copy, dtype=dtype)
+
+    def __array__(self, dtype: np.dtype | None = None,
+                  copy: bool | None = None) -> np.ndarray:
+        if copy is False and dtype is None:
+            return self._data
+        return np.array(self._data, dtype=dtype, copy=copy)
+
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        return _dispatch_collection_ufunc(self, ufunc, method, *inputs, **kwargs)
+
+    # -- component accessors --------------------------------------------------
+
+    @property
+    def real(self) -> np.ndarray:
+        return self._data[..., 0]
+
+    @property
+    def i(self) -> np.ndarray:
+        return self._data[..., 1]
+
+    @property
+    def j(self) -> np.ndarray:
+        return self._data[..., 2]
+
+    @property
+    def k(self) -> np.ndarray:
+        return self._data[..., 3]
+
+    # -- scalar arithmetic ----------------------------------------------------
+
+    def __neg__(self):
+        return self.__class__(-self._data)
+
+    def __truediv__(self, scalar: Real | Complex):
+        if isinstance(scalar, (Real, Complex)):
+            s = float(scalar.real if isinstance(scalar, Complex) else scalar)
+            return self.__class__(self._data / s)
+        return NotImplemented
+
+    def __rmul__(self, other: Real | Complex | Quaternion):
+        if isinstance(other, (Real, Complex)):
+            r = float(other.real if isinstance(other, Complex) else other)
+            return self.__class__(self._data * r)
+        if isinstance(other, Quaternion):
+            return self.__class__(_hamilton(other._data, self._data))
+        return NotImplemented
+
+    # -- norms ----------------------------------------------------------------
+
+    def norm(self) -> float:
+        """Frobenius norm."""
+        return float(np.sqrt(self.norm_squared()))
+
+    def norm_squared(self) -> float:
+        """Sum of squared component norms — override in subclasses."""
+        raise NotImplementedError
+
+    # -- validation -----------------------------------------------------------
+
+    def isnan(self) -> np.ndarray:
+        return _vec_isnan(self._data)
+
+    def isinf(self) -> np.ndarray:
+        return _vec_isinf(self._data)
+
+    def isfinite(self) -> np.ndarray:
+        return _vec_isfinite(self._data)
+
+    def isclose(self, other, rtol: float = 1e-05, atol: float = 1e-08) -> np.ndarray:
+        if self.shape != other.shape:
+            raise ValueError("Shape mismatch")
+        return _vec_isclose(self._data, other._data, rtol, atol)
+
+    # -- serialization --------------------------------------------------------
+
+    def to_json(self) -> str:
+        return _serialize_to_json(self._TYPE_NAME, self._data)
+
+    def to_bytes(self) -> bytes:
+        return _serialize_bytes_shaped(self._TYPE_ID, self._data)
+
+    @classmethod
+    def from_json(cls, s: str):
+        return _deserialize_from_json(s, {cls._TYPE_NAME: cls})
+
+    @classmethod
+    def from_bytes(cls, b: bytes):
+        return _deserialize_bytes_shaped(b, {cls._TYPE_ID: cls})
+
+
+# =============================================================================
+# QuatVector
+# =============================================================================
+
+
+class QuatVector(_BaseCollection):
+    __slots__ = ()
+    _TYPE_NAME = "QuatVector"
+    _TYPE_ID = 1
 
     def __init__(self, data: np.ndarray | list | tuple | QuatVector) -> None:
         if isinstance(data, QuatVector):
@@ -130,7 +256,6 @@ class QuatVector:
         else:
             raise TypeError(f"Cannot construct QuatVector from {type(data)}")
 
-    # -- constructors --------------------------------------------------------
     @classmethod
     def zeros(cls, n: int) -> QuatVector:
         return cls(np.zeros((n, 4)))
@@ -141,7 +266,6 @@ class QuatVector:
         data[:, 0] = 1.
         return cls(data)
 
-    # -- properties ----------------------------------------------------------
     @property
     def shape(self) -> Tuple[int, ...]:
         return (self._data.shape[0],)
@@ -154,58 +278,26 @@ class QuatVector:
             return Quaternion(self._data[idx])
         return QuatVector(self._data[idx])
 
-    def __setitem__(self, idx: int | slice, value: Quaternion | QuatVector) -> None:
+    def __setitem__(self, idx: int | slice,
+                    value: Quaternion | QuatVector) -> None:
         self._data[idx] = value._data
 
     def __iter__(self) -> Generator[Quaternion, None, None]:
         return (Quaternion(row) for row in self._data)
 
-    @property
-    def data(self) -> np.ndarray:
-        return _data_copy(self._data)
-
-    def to_array(self) -> np.ndarray:
-        return _to_array(self._data)
-
-    def to_numpy(self, copy: bool = True, dtype=None) -> np.ndarray:
-        return _to_numpy(self._data, copy=copy, dtype=dtype)
-
-    def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
-        if copy is False and dtype is None:
-            return self._data
-        return np.array(self._data, dtype=dtype, copy=copy)
-
-    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        return _dispatch_collection_ufunc(self, ufunc, method, *inputs, **kwargs)
-
-    # -- component arrays (n,) ------------------------------------------------
-    @property
-    def real(self) -> np.ndarray:
-        return self._data[:, 0]
-
-    @property
-    def i(self) -> np.ndarray:
-        return self._data[:, 1]
-
-    @property
-    def j(self) -> np.ndarray:
-        return self._data[:, 2]
-
-    @property
-    def k(self) -> np.ndarray:
-        return self._data[:, 3]
-
     def quaternions(self) -> List[Quaternion]:
         return [Quaternion(row) for row in self._data]
 
-    # -- display -------------------------------------------------------------
+    # -- display --------------------------------------------------------------
+
     def __repr__(self) -> str:
         inner = ", ".join(str(Quaternion(r)) for r in self._data[:6])
         if len(self) > 6:
             inner += f", ... ({len(self)} total)"
         return f"QuatVector([{inner}])"
 
-    # -- arithmetic ----------------------------------------------------------
+    # -- arithmetic -----------------------------------------------------------
+
     def __add__(self, other: QuatVector) -> QuatVector:
         if not isinstance(other, QuatVector):
             return NotImplemented
@@ -220,9 +312,6 @@ class QuatVector:
             raise ValueError(f"Size mismatch: {len(self)} vs {len(other)}")
         return QuatVector(self._data - other._data)
 
-    def __neg__(self) -> QuatVector:
-        return QuatVector(-self._data)
-
     def __mul__(self, other: QuatVector | Real | Complex | Quaternion) -> QuatVector:
         if isinstance(other, QuatVector):
             if len(self) != len(other):
@@ -235,119 +324,44 @@ class QuatVector:
             return QuatVector(_hamilton(self._data, other._data))
         return NotImplemented
 
-    def __rmul__(self, scalar: Real | Complex | Quaternion) -> QuatVector:
-        if isinstance(scalar, (Real, Complex)):
-            r = float(scalar.real if isinstance(scalar, Complex) else scalar)
-            return QuatVector(self._data * r)
-        if isinstance(scalar, Quaternion):
-            return QuatVector(_hamilton(scalar._data, self._data))
-        return NotImplemented
+    # -- algebraic ------------------------------------------------------------
 
-    def __truediv__(self, scalar: Real | Complex) -> QuatVector:
-        if isinstance(scalar, (Real, Complex)):
-            s = float(scalar.real if isinstance(scalar, Complex) else scalar)
-            return QuatVector(self._data / s)
-        return NotImplemented
-
-    # -- algebraic -----------------------------------------------------------
     def inner(self, other: QuatVector) -> Quaternion:
-        """Quaternion-valued inner product.
-
-        Example:
-            >>> a = QuatVector.zeros(3)
-            >>> b = QuatVector.zeros(3)
-            >>> ip = a.inner(b)
-        """
         if len(self) != len(other):
             raise ValueError("Size mismatch")
         return Quaternion(
             _hamilton(self._data * _CONJ, other._data).sum(axis=0))
-
-
-    def norm(self) -> float:
-        """Frobenius norm of the vector.
-
-        Example:
-            >>> v = QuatVector.ones(3)
-            >>> v.norm()
-            1.732...
-        """
-        return float(np.sqrt(self.norm_squared()))
 
     def norm_squared(self) -> float:
         conj_hprod = _hamilton(self._data * _CONJ, self._data).sum(axis=0)
         return float(conj_hprod[0])
 
     def normalize(self) -> QuatVector:
-        """Return a unit-norm copy of this vector.
-
-        Example:
-            >>> v = QuatVector.ones(3)
-            >>> u = v.normalize()
-            >>> u.norm()
-            1.0
-        """
         n = self.norm()
         if n == 0.0:
             raise ZeroDivisionError("Cannot normalize zero vector")
         return self / n
 
-    def isnan(self) -> np.ndarray:
-        return _vec_isnan(self._data)
+    # -- matrix representation ------------------------------------------------
 
-    def isinf(self) -> np.ndarray:
-        return _vec_isinf(self._data)
-
-    def isfinite(self) -> np.ndarray:
-        return _vec_isfinite(self._data)
-
-    def isclose(self, other: QuatVector, rtol: float = 1e-05, atol: float = 1e-08) -> np.ndarray:
-        if len(self) != len(other):
-            raise ValueError("Size mismatch")
-        return _vec_isclose(self._data, other._data, rtol, atol)
-
-    # -- serialization --------------------------------------------------------
-    def to_json(self) -> str:
-        return _serialize_to_json("QuatVector", self._data)
-
-    def to_bytes(self) -> bytes:
-        return _serialize_bytes_shaped(1, self._data)
-
-    @classmethod
-    def from_json(cls, s: str) -> "QuatVector":
-        return _deserialize_from_json(s, {"QuatVector": cls})
-
-    @classmethod
-    def from_bytes(cls, b: bytes) -> "QuatVector":
-        return _deserialize_bytes_shaped(b, {1: cls})
-
-    # -- matrix representation -----------------------------------------------
     def to_complex_matrix(self) -> np.ndarray:
         n = len(self)
         a, b, c, d = (self._data[:, i] for i in range(4))
-        M = np.empty((2*n, 2), dtype=complex)
-        M[0::2, 0] = a + 1j*b
-        M[0::2, 1] = c + 1j*d
-        M[1::2, 0] = -c + 1j*d
-        M[1::2, 1] = a - 1j*b
+        M = np.empty((2 * n, 2), dtype=complex)
+        M[0::2, 0] = a + 1j * b
+        M[0::2, 1] = c + 1j * d
+        M[1::2, 0] = -c + 1j * d
+        M[1::2, 1] = a - 1j * b
         return M
 
     def to_real_matrix_left(self) -> np.ndarray:
-        """Return left-multiplication real matrix of shape (4n, 4).
-
-        Example:
-            >>> v = QuatVector.ones(2)
-            >>> M = v.to_real_matrix_left()
-            >>> M.shape
-            (8, 4)
-        """
         n = len(self)
         a, b, c, d = (self._data[:, i] for i in range(4))
-        M = np.empty((4*n, 4))
-        M[0::4, 0] = a; M[0::4, 1] = -b; M[0::4, 2] = -c; M[0::4, 3] = -d
-        M[1::4, 0] = b; M[1::4, 1] =  a; M[1::4, 2] = -d; M[1::4, 3] =  c
-        M[2::4, 0] = c; M[2::4, 1] =  d; M[2::4, 2] =  a; M[2::4, 3] = -b
-        M[3::4, 0] = d; M[3::4, 1] = -c; M[3::4, 2] =  b; M[3::4, 3] =  a
+        M = np.empty((4 * n, 4))
+        M[0::4, 0] = a;   M[0::4, 1] = -b;  M[0::4, 2] = -c;  M[0::4, 3] = -d
+        M[1::4, 0] = b;   M[1::4, 1] =  a;  M[1::4, 2] = -d;  M[1::4, 3] =  c
+        M[2::4, 0] = c;   M[2::4, 1] =  d;  M[2::4, 2] =  a;  M[2::4, 3] = -b
+        M[3::4, 0] = d;   M[3::4, 1] = -c;  M[3::4, 2] =  b;  M[3::4, 3] =  a
         return M
 
     @classmethod
@@ -364,9 +378,15 @@ class QuatVector:
         return cls(data)
 
 
-# ---------------------------------------------------------------------------
-class QuatMatrix:
-    __slots__ = ('_data', '_m', '_n')
+# =============================================================================
+# QuatMatrix
+# =============================================================================
+
+
+class QuatMatrix(_BaseCollection):
+    __slots__ = ('_m', '_n')
+    _TYPE_NAME = "QuatMatrix"
+    _TYPE_ID = 2
 
     def __init__(self, data: np.ndarray | list | tuple | QuatMatrix) -> None:
         if isinstance(data, QuatMatrix):
@@ -405,7 +425,6 @@ class QuatMatrix:
         else:
             raise TypeError(f"Cannot construct QuatMatrix from {type(data)}")
 
-    # -- constructors --------------------------------------------------------
     @classmethod
     def zeros(cls, m: int, n: int) -> QuatMatrix:
         return cls(np.zeros((m, n, 4)))
@@ -417,7 +436,6 @@ class QuatMatrix:
         data[idx, idx, 0] = 1.
         return cls(data)
 
-    # -- properties ----------------------------------------------------------
     @property
     def shape(self) -> Tuple[int, int]:
         return (self._m, self._n)
@@ -434,7 +452,8 @@ class QuatMatrix:
         else:
             raise TypeError(f"Invalid index {idx}")
 
-    def __setitem__(self, idx: int | tuple, value: Quaternion | QuatVector) -> None:
+    def __setitem__(self, idx: int | tuple,
+                    value: Quaternion | QuatVector) -> None:
         if isinstance(idx, tuple):
             i, j = idx
             self._data[i, j] = value._data
@@ -449,42 +468,8 @@ class QuatMatrix:
     def col(self, j: int) -> QuatVector:
         return QuatVector(self._data[:, j])
 
-    @property
-    def data(self) -> np.ndarray:
-        return _data_copy(self._data)
+    # -- display --------------------------------------------------------------
 
-    def to_array(self) -> np.ndarray:
-        return _to_array(self._data)
-
-    def to_numpy(self, copy: bool = True, dtype=None) -> np.ndarray:
-        return _to_numpy(self._data, copy=copy, dtype=dtype)
-
-    def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
-        if copy is False and dtype is None:
-            return self._data
-        return np.array(self._data, dtype=dtype, copy=copy)
-
-    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        return _dispatch_collection_ufunc(self, ufunc, method, *inputs, **kwargs)
-
-    # -- component arrays (m, n) ---------------------------------------------
-    @property
-    def real(self) -> np.ndarray:
-        return self._data[..., 0]
-
-    @property
-    def i(self) -> np.ndarray:
-        return self._data[..., 1]
-
-    @property
-    def j(self) -> np.ndarray:
-        return self._data[..., 2]
-
-    @property
-    def k(self) -> np.ndarray:
-        return self._data[..., 3]
-
-    # -- display -------------------------------------------------------------
     def __repr__(self) -> str:
         lines = []
         for i in range(min(self._m, 8)):
@@ -498,7 +483,8 @@ class QuatMatrix:
             lines.append(f"  ... ({self._m} rows total)")
         return f"QuatMatrix({self._m}x{self._n}) [\n" + "\n".join(lines) + "\n]"
 
-    # -- arithmetic ----------------------------------------------------------
+    # -- arithmetic -----------------------------------------------------------
+
     def __add__(self, other: QuatMatrix) -> QuatMatrix:
         if not isinstance(other, QuatMatrix):
             return NotImplemented
@@ -512,9 +498,6 @@ class QuatMatrix:
         if self.shape != other.shape:
             raise ValueError("Shape mismatch")
         return QuatMatrix(self._data - other._data)
-
-    def __neg__(self) -> QuatMatrix:
-        return QuatMatrix(-self._data)
 
     def __mul__(self, other: QuatVector | QuatMatrix | Real | Complex | Quaternion) -> QuatVector | QuatMatrix:
         if isinstance(other, QuatVector):
@@ -537,93 +520,38 @@ class QuatMatrix:
             return QuatMatrix(_hamilton(self._data, other._data))
         return NotImplemented
 
-    def __rmul__(self, other: Real | Complex | Quaternion) -> QuatMatrix:
-        if isinstance(other, (Real, Complex)):
-            s = float(other.real if isinstance(other, Complex) else other)
-            return QuatMatrix(self._data * s)
-        if isinstance(other, Quaternion):
-            return QuatMatrix(_hamilton(other._data, self._data))
-        return NotImplemented
+    # -- matrix operations ----------------------------------------------------
 
-    # -- matrix operations ---------------------------------------------------
     def transpose(self) -> QuatMatrix:
-        """Quaternion matrix transpose.
-
-        Example:
-            >>> A = QuatMatrix.zeros(2, 3)
-            >>> A.T.shape
-            (3, 2)
-        """
         return QuatMatrix(np.transpose(self._data, (1, 0, 2)))
 
     @property
     def T(self) -> QuatMatrix:
-        """Alias for transpose()."""
         return self.transpose()
 
     def conjugate(self) -> QuatMatrix:
-        """Entrywise quaternion conjugate."""
         return QuatMatrix(self._data * _CONJ)
 
     def adjoint(self) -> QuatMatrix:
-        """Quaternion conjugate transpose (adjoint).
-
-        Example:
-            >>> A = QuatMatrix.zeros(2, 3)
-            >>> A.H.shape
-            (3, 2)
-        """
         t = np.transpose(self._data, (1, 0, 2))
         return QuatMatrix(t * _CONJ)
 
-    def norm(self) -> float:
-        return float(np.sqrt(self.norm_squared()))
+    @property
+    def H(self) -> QuatMatrix:
+        return self.adjoint()
 
     def norm_squared(self) -> float:
         return float((self._data * self._data).sum())
 
-    @property
-    def H(self) -> QuatMatrix:
-        """Alias for adjoint()."""
-        return self.adjoint()
+    # -- matrix representations -----------------------------------------------
 
-    def isnan(self) -> np.ndarray:
-        return _vec_isnan(self._data)
-
-    def isinf(self) -> np.ndarray:
-        return _vec_isinf(self._data)
-
-    def isfinite(self) -> np.ndarray:
-        return _vec_isfinite(self._data)
-
-    def isclose(self, other: QuatMatrix, rtol: float = 1e-05, atol: float = 1e-08) -> np.ndarray:
-        if self.shape != other.shape:
-            raise ValueError("Shape mismatch")
-        return _vec_isclose(self._data, other._data, rtol, atol)
-
-    # -- serialization --------------------------------------------------------
-    def to_json(self) -> str:
-        return _serialize_to_json("QuatMatrix", self._data)
-
-    def to_bytes(self) -> bytes:
-        return _serialize_bytes_shaped(2, self._data)
-
-    @classmethod
-    def from_json(cls, s: str) -> "QuatMatrix":
-        return _deserialize_from_json(s, {"QuatMatrix": cls})
-
-    @classmethod
-    def from_bytes(cls, b: bytes) -> "QuatMatrix":
-        return _deserialize_bytes_shaped(b, {2: cls})
-
-    # -- matrix representations ----------------------------------------------
     def to_complex_matrix(self) -> np.ndarray:
         a, b, c, d = (self._data[..., i] for i in range(4))
-        M = np.empty((2*self._m, 2*self._n), dtype=complex)
-        M[0::2, 0::2] = a + 1j*b
-        M[0::2, 1::2] = c + 1j*d
-        M[1::2, 0::2] = -c + 1j*d
-        M[1::2, 1::2] = a - 1j*b
+        M = np.empty((2 * self._m, 2 * self._n), dtype=complex)
+        M[0::2, 0::2] = a + 1j * b
+        M[0::2, 1::2] = c + 1j * d
+        M[1::2, 0::2] = -c + 1j * d
+        M[1::2, 1::2] = a - 1j * b
         return M
 
     @classmethod
@@ -640,16 +568,8 @@ class QuatMatrix:
         return cls(result)
 
     def to_real_matrix_left(self) -> np.ndarray:
-        """Return left-multiplication real matrix of shape (4m, 4n).
-
-        Example:
-            >>> A = QuatMatrix.eye(2)
-            >>> M = A.to_real_matrix_left()
-            >>> M.shape
-            (8, 8)
-        """
-        return np.einsum('rck,mnk->mrnc', _REAL_LEFT, self._data, optimize=True).reshape(
-            4 * self._m, 4 * self._n)
+        return np.einsum('rck,mnk->mrnc', _REAL_LEFT, self._data,
+                         optimize=True).reshape(4 * self._m, 4 * self._n)
 
     @classmethod
     def from_real_matrix_left(cls, M: np.ndarray) -> QuatMatrix:
@@ -665,9 +585,15 @@ class QuatMatrix:
         return cls(result)
 
 
-# ---------------------------------------------------------------------------
-class QuatTensor:
-    __slots__ = ('_data', '_p', '_q', '_r')
+# =============================================================================
+# QuatTensor
+# =============================================================================
+
+
+class QuatTensor(_BaseCollection):
+    __slots__ = ('_p', '_q', '_r')
+    _TYPE_NAME = "QuatTensor"
+    _TYPE_ID = 3
 
     def __init__(self, data: np.ndarray | list | tuple | QuatTensor) -> None:
         if isinstance(data, QuatTensor):
@@ -718,12 +644,10 @@ class QuatTensor:
             raise TypeError(
                 f"Cannot construct QuatTensor from {type(data)}")
 
-    # -- constructors --------------------------------------------------------
     @classmethod
     def zeros(cls, p: int, q: int, r: int) -> QuatTensor:
         return cls(np.zeros((p, q, r, 4)))
 
-    # -- properties ----------------------------------------------------------
     @property
     def shape(self) -> Tuple[int, int, int]:
         return (self._p, self._q, self._r)
@@ -745,7 +669,8 @@ class QuatTensor:
         else:
             raise TypeError(f"Invalid index {idx}")
 
-    def __setitem__(self, idx: int | tuple, value: Quaternion | QuatMatrix | QuatVector) -> None:
+    def __setitem__(self, idx: int | tuple,
+                    value: Quaternion | QuatMatrix | QuatVector) -> None:
         if isinstance(idx, tuple) and len(idx) == 3:
             self._data[idx[0], idx[1], idx[2]] = value._data
         elif isinstance(idx, int):
@@ -755,45 +680,13 @@ class QuatTensor:
         else:
             raise TypeError(f"Invalid index {idx}")
 
-    @property
-    def data(self) -> np.ndarray:
-        return _data_copy(self._data)
-
-    def to_array(self) -> np.ndarray:
-        return _to_array(self._data)
-
-    def to_numpy(self, copy: bool = True, dtype=None) -> np.ndarray:
-        return _to_numpy(self._data, copy=copy, dtype=dtype)
-
-    def __array__(self, dtype: np.dtype | None = None, copy: bool | None = None) -> np.ndarray:
-        if copy is False and dtype is None:
-            return self._data
-        return np.array(self._data, dtype=dtype, copy=copy)
-
-    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        return _dispatch_collection_ufunc(self, ufunc, method, *inputs, **kwargs)
-
-    # -- component tensors (n, H, W) -----------------------------------------
-    @property
-    def real(self) -> np.ndarray:
-        return self._data[..., 0]
-
-    @property
-    def i(self) -> np.ndarray:
-        return self._data[..., 1]
-
-    @property
-    def j(self) -> np.ndarray:
-        return self._data[..., 2]
-
-    @property
-    def k(self) -> np.ndarray:
-        return self._data[..., 3]
+    # -- display --------------------------------------------------------------
 
     def __repr__(self) -> str:
         return f"QuatTensor({self._p}x{self._q}x{self._r})"
 
-    # -- arithmetic ----------------------------------------------------------
+    # -- arithmetic -----------------------------------------------------------
+
     def __add__(self, other: QuatTensor) -> QuatTensor:
         if not isinstance(other, QuatTensor):
             return NotImplemented
@@ -808,9 +701,6 @@ class QuatTensor:
             raise ValueError("Shape mismatch")
         return QuatTensor(self._data - other._data)
 
-    def __neg__(self) -> QuatTensor:
-        return QuatTensor(-self._data)
-
     def __mul__(self, scalar: Real | Complex | Quaternion) -> QuatTensor:
         if isinstance(scalar, (Real, Complex)):
             r = float(scalar.real if isinstance(scalar, Complex) else scalar)
@@ -819,36 +709,27 @@ class QuatTensor:
             return QuatTensor(_hamilton(self._data, scalar._data))
         return NotImplemented
 
-    def __rmul__(self, scalar: Real | Complex | Quaternion) -> QuatTensor:
-        if isinstance(scalar, (Real, Complex)):
-            r = float(scalar.real if isinstance(scalar, Complex) else scalar)
-            return QuatTensor(self._data * r)
-        if isinstance(scalar, Quaternion):
-            return QuatTensor(_hamilton(scalar._data, self._data))
-        return NotImplemented
+    # -- algebraic ------------------------------------------------------------
 
-    def __truediv__(self, scalar: Real | Complex) -> QuatTensor:
-        if isinstance(scalar, (Real, Complex)):
-            s = float(scalar.real if isinstance(scalar, Complex) else scalar)
-            return QuatTensor(self._data / s)
-        return NotImplemented
+    def inner(self, other: QuatTensor) -> Quaternion:
+        if self.shape != other.shape:
+            raise ValueError("Shape mismatch")
+        return Quaternion(
+            _hamilton(self._data * _CONJ, other._data)
+            .sum(axis=(0, 1, 2)))
 
-    # -- mode-n products -----------------------------------------------------
+    def norm_squared(self) -> float:
+        conj_sum = _hamilton(
+            self._data * _CONJ, self._data).sum(axis=(0, 1, 2))
+        return float(conj_sum[0])
+
+    # -- mode-n products ------------------------------------------------------
+
     def mode_1_product(self, A: QuatMatrix) -> QuatTensor:
-        """Contract first mode with quaternion matrix A.
-
-        Example:
-            >>> X = QuatTensor.zeros(3, 4, 5)
-            >>> A = QuatMatrix.zeros(2, 3)
-            >>> Y = X.mode_1_product(A)
-            >>> Y.shape
-            (2, 4, 5)
-        """
         if not isinstance(A, QuatMatrix):
             raise TypeError("A must be QuatMatrix")
         if A.shape[1] != self._p:
-            raise ValueError(
-                f"A cols must match first mode {self._p}")
+            raise ValueError(f"A cols must match first mode {self._p}")
         result = _hamilton(
             A._data[:, :, None, None, :],
             self._data[None, :, :, :, :]
@@ -859,8 +740,7 @@ class QuatTensor:
         if not isinstance(A, QuatMatrix):
             raise TypeError("A must be QuatMatrix")
         if A.shape[1] != self._q:
-            raise ValueError(
-                f"A cols must match second mode {self._q}")
+            raise ValueError(f"A cols must match second mode {self._q}")
         result = _hamilton(
             A._data[None, :, :, None, :],
             self._data[:, None, :, :, :]
@@ -871,72 +751,16 @@ class QuatTensor:
         if not isinstance(A, QuatMatrix):
             raise TypeError("A must be QuatMatrix")
         if A.shape[1] != self._r:
-            raise ValueError(
-                f"A cols must match third mode {self._r}")
+            raise ValueError(f"A cols must match third mode {self._r}")
         result = _hamilton(
             A._data[None, None, :, :, :],
             self._data[:, :, None, :, :]
         ).sum(axis=3)
         return QuatTensor(result)
 
-    # -- algebraic -----------------------------------------------------------
-    def inner(self, other: QuatTensor) -> Quaternion:
-        if self.shape != other.shape:
-            raise ValueError("Shape mismatch")
-        return Quaternion(
-            _hamilton(self._data * _CONJ, other._data)
-            .sum(axis=(0, 1, 2)))
+    # -- unfolding ------------------------------------------------------------
 
-    def norm(self) -> float:
-        return float(np.sqrt(self.norm_squared()))
-
-    def norm_squared(self) -> float:
-        conj_sum = _hamilton(
-            self._data * _CONJ, self._data).sum(axis=(0, 1, 2))
-        return float(conj_sum[0])
-
-    def isnan(self) -> np.ndarray:
-        return _vec_isnan(self._data)
-
-    def isinf(self) -> np.ndarray:
-        return _vec_isinf(self._data)
-
-    def isfinite(self) -> np.ndarray:
-        return _vec_isfinite(self._data)
-
-    def isclose(self, other: QuatTensor, rtol: float = 1e-05, atol: float = 1e-08) -> np.ndarray:
-        if self.shape != other.shape:
-            raise ValueError("Shape mismatch")
-        return _vec_isclose(self._data, other._data, rtol, atol)
-
-    # -- serialization --------------------------------------------------------
-    def to_json(self) -> str:
-        return _serialize_to_json("QuatTensor", self._data)
-
-    def to_bytes(self) -> bytes:
-        return _serialize_bytes_shaped(3, self._data)
-
-    @classmethod
-    def from_json(cls, s: str) -> "QuatTensor":
-        return _deserialize_from_json(s, {"QuatTensor": cls})
-
-    @classmethod
-    def from_bytes(cls, b: bytes) -> "QuatTensor":
-        return _deserialize_bytes_shaped(b, {3: cls})
-
-    # -- unfolding -----------------------------------------------------------
     def unfold(self, mode: int) -> QuatMatrix:
-        """Unfold tensor along ``mode`` into a QuatMatrix.
-
-        Example:
-            >>> X = QuatTensor.zeros(3, 4, 5)
-            >>> X.unfold(1).shape
-            (3, 20)
-            >>> X.unfold(2).shape
-            (4, 15)
-            >>> X.unfold(3).shape
-            (5, 12)
-        """
         if mode == 1:
             return QuatMatrix(
                 self._data.transpose(0, 1, 2, 3)
@@ -960,39 +784,31 @@ class QuatTensor:
 
 
 # ---------------------------------------------------------------------------
-# Convenience function & module-level basis constants
+# Convenience functions
 # ---------------------------------------------------------------------------
+
+
 def dict_to_quat_matrix(X_dict: dict) -> QuatMatrix:
     """Convert a single-sample quaternion dict to QuatMatrix.
 
     X_dict: {'real': (H,W), 'i': (H,W), 'j': (H,W), 'k': (H,W)}
     Returns: QuatMatrix of shape (H, W) — one Quaternion per pixel.
-
-    Example:
-        >>> import numpy as np
-        >>> X = {'real': np.zeros((2,3)), 'i': np.zeros((2,3)),
-        ...      'j': np.zeros((2,3)), 'k': np.zeros((2,3))}
-        >>> M = dict_to_quat_matrix(X)
-        >>> M.shape
-        (2, 3)
     """
     data = np.stack(
         [X_dict['real'], X_dict['i'], X_dict['j'], X_dict['k']],
-        axis=-1)  # (H, W, 4)
+        axis=-1)
     return QuatMatrix(data)
 
 
 def dict_to_quat_tensor(X_dict: dict) -> QuatTensor:
     """Convert a batched quaternion dict to QuatTensor.
 
-    Equivalent to stacking per-sample dict_to_quat_matrix results.
-
     X_dict: {'real': (n,H,W), 'i': (n,H,W), 'j': (n,H,W), 'k': (n,H,W)}
-    Returns: QuatTensor of shape (n, H, W) — mode1=sample, mode2=H, mode3=W
+    Returns: QuatTensor of shape (n, H, W)
     """
     data = np.stack(
         [X_dict['real'], X_dict['i'], X_dict['j'], X_dict['k']],
-        axis=-1)  # (n, H, W, 4)
+        axis=-1)
     return QuatTensor(data)
 
 
@@ -1001,15 +817,6 @@ def labels_to_quat_vector(y: np.ndarray, binary: bool = False) -> QuatVector:
 
     y: (n,) int array
     binary: if True, maps 0→-1, 1→+1
-
-    Example:
-        >>> import numpy as np
-        >>> y = np.array([0, 1, 2])
-        >>> v = labels_to_quat_vector(y)
-        >>> v.shape
-        (3,)
-        >>> labels_to_quat_vector(y, binary=True).real
-        array([-1.,  1.,  2.])
     """
     data = np.zeros((len(y), 4))
     vals = np.asarray(y, dtype=float)
