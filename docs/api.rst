@@ -10,7 +10,7 @@ API Reference
    quat.signal
    quat.linalg
    quat.interpolate
+   quat.stats
    quat.random
    quat.utils
    quat.serialization
-   quat.optimized
