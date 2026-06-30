@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quat-numpy"
-version = "1.0.0b1"
+version = "1.0.0b2"
 description = "Quaternion algebra library with vector/matrix/tensor collections, linear algebra (SVD), interpolation (SLERP/squad), signal processing (QFFT/QConv), distance metrics, kinematics, statistics, and optimized einsum kernels."
 readme = "README.md"
 license = "Apache-2.0"
