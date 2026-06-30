@@ -174,8 +174,7 @@ def quat_matmul(A_data: npt.NDArray, B_data: npt.NDArray) -> npt.NDArray:
 def component_wise_mul(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
     """Component-wise multiplication of quaternion arrays.
 
-    ``(a0 + a1i + a2j + a3k) ⊙ (b0 + b1i + b2j + b3k)
-      = (a0*b0) + (a1*b1)i + (a2*b2)j + (a3*b3)k``
+    ``(a0 + a1i + a2j + a3k) ⊙ (b0 + b1i + b2j + b3k) = (a0*b0) + (a1*b1)i + (a2*b2)j + (a3*b3)k``
 
     No Hamilton cross-terms — simply multiplies corresponding components.
 
