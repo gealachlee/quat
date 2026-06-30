@@ -8,7 +8,7 @@ from __future__ import annotations
 import json as _json
 import struct as _struct
 import numpy as np
-from typing import Tuple, List, Iterator
+from typing import Tuple, Iterator
 from numbers import Real, Complex
 from quat.algebra import _hamilton, _CONJ
 
@@ -124,6 +124,7 @@ class Quaternion:
                 [float(scalar), float(vector[0]), float(vector[1]), float(vector[2])])
         else:
             raise TypeError(f"Invalid arguments: args={args}, kwargs={kwargs}")
+        self._data.flags.writeable = False
 
     # -- constructors --------------------------------------------------------
     @classmethod
@@ -322,7 +323,8 @@ class Quaternion:
         return NotImplemented
 
     def __hash__(self) -> int:
-        return hash(tuple(float(v) for v in self.components))
+        return hash((float(self._data[0]), float(self._data[1]),
+                     float(self._data[2]), float(self._data[3])))
 
     # -- arithmetic ----------------------------------------------------------
     def __add__(self, other) -> Quaternion:
@@ -657,7 +659,6 @@ class Quaternion:
     @classmethod
     def from_bytes(cls, b: bytes) -> "Quaternion":
         """Deserialize from binary bytes."""
-        type_id = _struct.unpack_from('<i', b, 0)[0]
         data = np.frombuffer(b[4:], dtype=np.float64)
         return cls(data)
 
@@ -724,8 +725,10 @@ class Quaternion:
             return a - b
         if ufunc is np.multiply:
             return a * b
-        if ufunc is np.true_divide or ufunc is np.floor_divide:
+        if ufunc is np.true_divide:
             return a / b
+        if ufunc is np.floor_divide:
+            return NotImplemented
         if ufunc is np.negative:
             return -a
         if ufunc is np.positive:

@@ -27,36 +27,30 @@ Serialization (from quat.serialization):
   to_json, from_json, to_bytes, from_bytes,
   to_scipy_rotation, from_scipy_rotation
 
-Optimized (from quat.optimized):
-  hamilton_einsum, quat_matmul, conjugate_batch,
-  norm_squared_batch, normalize_batch
-
 Linear algebra (from quat.linalg):
   svd, svd_values, rank, condition_number, pseudo_inverse,
   trace, det, norm, solve
+
+Performance (from quat.algebra):
+  hamilton_einsum, quat_matmul, conjugate_batch,
+  norm_squared_batch, normalize_batch
 
 Random (from quat.random):
   random_quat, random_unit_quat, random_quat_vector,
   random_quat_matrix, random_quat_tensor
 
-Interpolation (from quat.interpolate):
-  slerp, slerp_vector, squad
+Interpolation & kinematics (from quat.interpolate):
+  slerp, slerp_vector, squad,
+  angular_velocity, integrate_angular_velocity, rotate_frame
 
 Signal processing (from quat.signal):
   qfft, iqfft, qfft2, iqfft2,
   qconv, qconv2,
   lowpass, highpass, bandpass, bandstop
 
-Distance (from quat.distance):
-  rotation.intrinsic, rotation.chordal, rotor.intrinsic, rotor.chordal
-
-Kinematics (from quat.kinematics):
-  angular_velocity, integrate_angular_velocity, rotate_frame
-
-Mean (from quat.mean):
-  mean_rotation, karcher_mean
-
-Statistics (from quat.stats):
+Statistics & distance & mean (from quat.stats):
+  rotation.intrinsic, rotation.chordal, rotor.intrinsic, rotor.chordal,
+  mean_rotation, approximate_karcher_mean,
   quaternion_mean, quaternion_cov, quaternion_pca
 """
 
@@ -92,7 +86,7 @@ from quat.signal import (
     qconv, qconv2,
     lowpass, highpass, bandpass, bandstop,
 )
-from quat.stats import rotation, rotor, mean_rotation, karcher_mean
+from quat.stats import rotation, rotor, mean_rotation, approximate_karcher_mean
 from quat.stats import quaternion_mean, quaternion_cov, quaternion_pca
 
 __all__ = [
@@ -115,7 +109,7 @@ __all__ = [
     'lowpass', 'highpass', 'bandpass', 'bandstop',
     'rotation', 'rotor',
     'angular_velocity', 'integrate_angular_velocity', 'rotate_frame',
-    'mean_rotation', 'karcher_mean',
+    'mean_rotation', 'approximate_karcher_mean',
     'quaternion_mean', 'quaternion_cov', 'quaternion_pca',
     '__version__',
 ]

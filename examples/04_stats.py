@@ -1,7 +1,7 @@
 """04_stats — distance metrics, mean rotation, PCA."""
 import numpy as np
 from quat import Quaternion, QuatVector, QuatMatrix
-from quat.stats import rotation, rotor, mean_rotation, karcher_mean
+from quat.stats import rotation, rotor, mean_rotation, approximate_karcher_mean
 from quat.stats import quaternion_mean, quaternion_cov, quaternion_pca
 
 print("=" * 60)
@@ -32,7 +32,7 @@ for _ in range(50):
 qv = QuatVector(samples)
 
 m_svd = mean_rotation(qv)
-m_kar = karcher_mean(qv, max_iter=30)
+m_kar = approximate_karcher_mean(qv, max_iter=30)
 print("SVD mean norm:", m_svd.norm())
 print("Karcher mean norm:", m_kar.norm())
 print("Distance between two means:", rotation.intrinsic(m_svd, m_kar))

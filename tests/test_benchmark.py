@@ -3,7 +3,7 @@ from quat.core import Quaternion
 from quat.collections import QuatVector, QuatMatrix
 from quat.algebra import _hamilton
 from quat.signal import qfft, qconv
-from quat.optimized import hamilton_einsum, quat_matmul
+from quat.algebra import hamilton_einsum, quat_matmul
 from quat.linalg import svd, pseudo_inverse
 
 

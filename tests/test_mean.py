@@ -51,9 +51,9 @@ class TestMeanRotation(QuatTestCase):
 class TestKarcherMean(QuatTestCase):
     def test_converges_to_unit(self):
         from quat.collections import QuatVector
-        from quat.stats import karcher_mean
+        from quat.stats import approximate_karcher_mean
         rng = np.random.default_rng(42)
         data = rng.normal(size=(100, 4))
         qv = QuatVector(data / np.linalg.norm(data, axis=-1, keepdims=True))
-        km = karcher_mean(qv, max_iter=50)
+        km = approximate_karcher_mean(qv, max_iter=50)
         self.assertAlmostEqual(km.norm(), 1.0, places=5)

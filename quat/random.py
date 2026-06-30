@@ -3,6 +3,7 @@
 # =========================================================================
 
 """Random quaternion generators."""
+from __future__ import annotations
 import numpy as np
 from quat.core import Quaternion
 from quat.collections import QuatVector, QuatMatrix, QuatTensor

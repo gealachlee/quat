@@ -472,8 +472,7 @@ class TestQuaternionToNumpy(QuatTestCase):
         q = Quaternion(1, 2, 3, 4)
         arr = q.to_numpy(copy=False)
         self.assertTrue(arr is q._data)
-        arr[0] = 99.0
-        self.assertEqual(q.r, 99.0)
+        self.assertTrue(np.array_equal(arr, [1., 2., 3., 4.]))
 
     def test_to_numpy_dtype(self):
         from quat.core import Quaternion

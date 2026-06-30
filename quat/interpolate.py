@@ -35,7 +35,7 @@ def slerp(q0: Quaternion, q1: Quaternion, t: float) -> Quaternion:
         cos_theta = -cos_theta
     if cos_theta > 1.0 - 1e-12:
         return Quaternion(q0._data + t * (q1._data - q0._data))
-    theta = np.arccos(float(cos_theta))
+    theta = np.arccos(cos_theta)
     s = float(np.sin(theta))
     w0 = float(np.sin((1.0 - t) * theta) / s)
     w1 = float(np.sin(t * theta) / s)
@@ -157,10 +157,12 @@ def angular_velocity(
     q_diff = _hamilton(q_data[1:], q_conj)  # (n-1, 4)
 
     norms = np.sqrt(np.sum(q_diff ** 2, axis=-1, keepdims=True))
-    norms = np.where(norms < 1e-15, 1.0, norms)
+    zero_mask = (norms < 1e-15).squeeze(-1)
+    norms[zero_mask] = 1.0
     q_diff = q_diff / norms
 
     omega = 2.0 * q_diff[:, 1:] / dt  # (n-1, 3)
+    omega[zero_mask] = 0.0
     return omega
 
 

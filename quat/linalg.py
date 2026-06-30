@@ -136,7 +136,10 @@ def condition_number(A: QuatMatrix) -> float:
         >>> np.testing.assert_almost_equal(condition_number(I), 1.0)
     """
     s = _svd_values(A)
-    return float(s.max() / s[s > 1e-15].min())
+    pos = s[s > 1e-15]
+    if len(pos) == 0:
+        return float('inf')
+    return float(s.max() / pos.min())
 
 
 def pseudo_inverse(A: QuatMatrix, tol: Optional[float] = None) -> QuatMatrix:
@@ -229,7 +232,7 @@ def det(A: QuatMatrix) -> float:
     A_real = A.to_real_matrix_left()
     det_real = np.linalg.det(A_real)
     if det_real < 0:
-        return float((-(-det_real) ** (1 / 4)))
+        return float((-det_real) ** (1 / 4))
     return float(det_real ** (1 / 4))
 
 

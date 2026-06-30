@@ -11,7 +11,7 @@ from tests.conftest import QuatTestCase
 class TestOptimizedHamilton(QuatTestCase):
     def test_correctness_vs_standard(self):
         from quat.algebra import _hamilton
-        from quat.optimized import hamilton_einsum
+        from quat.algebra import hamilton_einsum
         p = np.random.randn(10, 4)
         q = np.random.randn(10, 4)
         r1 = _hamilton(p, q)
@@ -20,7 +20,7 @@ class TestOptimizedHamilton(QuatTestCase):
 
     def test_broadcasting(self):
         from quat.algebra import _hamilton
-        from quat.optimized import hamilton_einsum
+        from quat.algebra import hamilton_einsum
         p = np.random.randn(3, 1, 4)
         q = np.random.randn(1, 5, 4)
         r1 = _hamilton(p, q)
@@ -30,7 +30,7 @@ class TestOptimizedHamilton(QuatTestCase):
 
 class TestOptimizedMatrixMultiply(QuatTestCase):
     def test_correctness(self):
-        from quat.optimized import quat_matmul
+        from quat.algebra import quat_matmul
         from quat.collections import QuatMatrix
         A = QuatMatrix(np.random.randn(3, 4, 4))
         B = QuatMatrix(np.random.randn(4, 5, 4))
@@ -41,21 +41,21 @@ class TestOptimizedMatrixMultiply(QuatTestCase):
 
 class TestOptimizedOperations(QuatTestCase):
     def test_conjugate_batch(self):
-        from quat.optimized import conjugate_batch
+        from quat.algebra import conjugate_batch
         data = np.random.randn(100, 4)
         expected = data * np.array([1., -1., -1., -1.])
         result = conjugate_batch(data)
         self.assertTrue(np.allclose(result, expected))
 
     def test_norm_squared_batch(self):
-        from quat.optimized import norm_squared_batch
+        from quat.algebra import norm_squared_batch
         data = np.random.randn(50, 4)
         result = norm_squared_batch(data)
         expected = (data * data).sum(axis=-1)
         self.assertTrue(np.allclose(result, expected))
 
     def test_normalize_batch(self):
-        from quat.optimized import normalize_batch
+        from quat.algebra import normalize_batch
         data = np.array([[3., 4., 0., 0.], [0., 0., 5., 12.]])
         result = normalize_batch(data)
         norms = np.sqrt((result * result).sum(axis=-1))

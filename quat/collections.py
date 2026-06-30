@@ -5,6 +5,9 @@
 """Quaternion collection types — QuatVector, QuatMatrix, QuatTensor."""
 from __future__ import annotations
 
+import json as _json
+import struct as _struct
+
 import numpy as np
 from typing import Tuple, List, Generator
 from numbers import Real, Complex
@@ -33,7 +36,7 @@ def _to_numpy(data: np.ndarray, copy: bool = True,
 
 
 def _dispatch_collection_ufunc(
-    self, ufunc, method: str, *inputs, **kwargs
+    ufunc, method: str, *inputs, **kwargs
 ) -> object:
     if method != '__call__' or kwargs.get('out') is not None:
         return NotImplemented
@@ -44,8 +47,10 @@ def _dispatch_collection_ufunc(
         return a - b
     if ufunc is np.multiply:
         return a * b
-    if ufunc is np.true_divide or ufunc is np.floor_divide:
+    if ufunc is np.true_divide:
         return a / b
+    if ufunc is np.floor_divide:
+        return NotImplemented
     if ufunc is np.negative:
         return -a
     return NotImplemented
@@ -69,12 +74,6 @@ def _vec_isclose(data: np.ndarray, other_data: np.ndarray,
 
 
 # -- serialization helpers ----------------------------------------------------
-
-import json as _json
-import struct as _struct
-
-_TYPE_IDS: dict[int, str] = {0: "Quaternion", 1: "QuatVector", 2: "QuatMatrix", 3: "QuatTensor"}
-_TYPE_NAMES: dict[str, int] = {v: k for k, v in _TYPE_IDS.items()}
 
 
 def _serialize_to_json(type_name: str, data: np.ndarray) -> str:
@@ -140,7 +139,7 @@ class _BaseCollection:
         return np.array(self._data, dtype=dtype, copy=copy)
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        return _dispatch_collection_ufunc(self, ufunc, method, *inputs, **kwargs)
+        return _dispatch_collection_ufunc(ufunc, method, *inputs, **kwargs)
 
     # -- component accessors --------------------------------------------------
 

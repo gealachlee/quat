@@ -151,7 +151,7 @@ def mean_rotation(
     return Quaternion(q / nrm)
 
 
-def karcher_mean(
+def approximate_karcher_mean(
     qv: QuatVector,
     weights: np.ndarray | None = None,
     tol: float = 1e-8,
@@ -235,7 +235,10 @@ def quaternion_cov(
     if mu is None:
         mu = quaternion_mean(data)
     centered = data - mu._data
-    return centered.T @ centered / (data.shape[0] - 1)
+    n = data.shape[0]
+    if n <= 1:
+        return np.zeros((4, 4))
+    return centered.T @ centered / (n - 1)
 
 
 def quaternion_pca(
@@ -258,8 +261,10 @@ def quaternion_pca(
     """
     mu = quaternion_mean(data)
     centered = data - mu._data
-    U, s, Vt = np.linalg.svd(centered, full_matrices=False)
+    _, s, Vt = np.linalg.svd(centered, full_matrices=False)
     components = Vt[:n_components]
     n = data.shape[0]
+    if n <= 1:
+        return components, np.zeros(n_components)
     explained_variance = (s[:n_components] ** 2) / (n - 1)
     return components, explained_variance
