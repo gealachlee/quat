@@ -147,6 +147,10 @@ print(_I * _J * _K)     # -1 (Hamilton's fundamental identity)
 | `quat.linalg` | `svd`, `rank`, `condition_number`, `pseudo_inverse`, `trace`, `det`, `norm`, `solve` |
 | `quat.serialization` | `to_json`, `from_json`, `to_bytes`, `from_bytes`, `to_scipy_rotation`, `from_scipy_rotation` |
 | `quat.signal` | `qfft`, `iqfft`, `qfft2`, `iqfft2`, `qconv`, `qconv2`, `lowpass`, `highpass`, `bandpass`, `bandstop` |
+| `quat.distance` | `rotation.intrinsic`, `rotation.chordal`, `rotor.intrinsic`, `rotor.chordal` — geodesic and chordal distance metrics on SO(3) and S³, with batch variants |
+| `quat.kinematics` | `angular_velocity`, `integrate_angular_velocity`, `rotate_frame` — quaternion trajectory estimation and frame rotation |
+| `quat.mean` | `mean_rotation`, `karcher_mean` — SVD-based closed-form and Riemannian (Karcher) iterative quaternion averaging |
+| `quat.stats` | `quaternion_mean`, `quaternion_cov`, `quaternion_pca` — quaternion component-space statistics and dimensionality reduction |
 | `quat.optimized` | `hamilton_einsum`, `quat_matmul`, `conjugate_batch`, `norm_squared_batch`, `normalize_batch` |
 
 ### Performance
