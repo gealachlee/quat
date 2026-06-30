@@ -437,7 +437,7 @@ class QuatMatrix(_BaseCollection):
 
     @property
     def shape(self) -> Tuple[int, int]:
-        return (self._m, self._n)
+        return self._m, self._n
 
     def __len__(self) -> int:
         return self._m
