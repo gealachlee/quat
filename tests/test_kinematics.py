@@ -8,7 +8,7 @@ class TestAngularVelocity(QuatTestCase):
     def test_constant_rotation_z(self):
         from quat.core import Quaternion
         from quat.collections import QuatVector
-        from quat.kinematics import angular_velocity
+        from quat.interpolate import angular_velocity
         dt = 0.01
         t = np.arange(100) * dt
         q_list = [Quaternion.from_axis_angle((0, 0, 1), ti) for ti in t]
@@ -21,7 +21,7 @@ class TestAngularVelocity(QuatTestCase):
     def test_zero_velocity(self):
         from quat.core import Quaternion
         from quat.collections import QuatVector
-        from quat.kinematics import angular_velocity
+        from quat.interpolate import angular_velocity
         q_fixed = Quaternion(1, 0, 0, 0)
         q_seq = QuatVector([q_fixed] * 10)
         omega = angular_velocity(q_seq, 0.01)
@@ -32,7 +32,7 @@ class TestIntegrateAngularVelocity(QuatTestCase):
     def test_roundtrip(self):
         from quat.core import Quaternion
         from quat.collections import QuatVector
-        from quat.kinematics import angular_velocity, integrate_angular_velocity
+        from quat.interpolate import angular_velocity, integrate_angular_velocity
         dt = 0.01
         t = np.arange(100) * dt
         q_list = [Quaternion.from_axis_angle((0, 0, 1), ti) for ti in t]
@@ -47,7 +47,7 @@ class TestIntegrateAngularVelocity(QuatTestCase):
 class TestRotateFrame(QuatTestCase):
     def test_rotate_about_z(self):
         from quat.core import Quaternion
-        from quat.kinematics import rotate_frame
+        from quat.interpolate import rotate_frame
         q = Quaternion(1, 0, 0, 0)
         result = rotate_frame(q, (0, 0, 1), np.pi / 2)
         expected = Quaternion.from_axis_angle((0, 0, 1), np.pi / 2)

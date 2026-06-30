@@ -8,7 +8,7 @@ class TestMeanRotation(QuatTestCase):
     def test_identical_quaternions(self):
         from quat.core import Quaternion
         from quat.collections import QuatVector
-        from quat.mean import mean_rotation
+        from quat.stats import mean_rotation
         q = Quaternion(1, 0, 0, 0)
         qv = QuatVector([q, q, q])
         m = mean_rotation(qv)
@@ -17,7 +17,7 @@ class TestMeanRotation(QuatTestCase):
     def test_antipodal_mean_unit_norm(self):
         from quat.core import Quaternion
         from quat.collections import QuatVector
-        from quat.mean import mean_rotation
+        from quat.stats import mean_rotation
         qv = QuatVector([
             Quaternion(1, 0, 0, 0),
             Quaternion(-1, 0, 0, 0),
@@ -28,7 +28,7 @@ class TestMeanRotation(QuatTestCase):
     def test_weighted_mean(self):
         from quat.core import Quaternion
         from quat.collections import QuatVector
-        from quat.mean import mean_rotation
+        from quat.stats import mean_rotation
         qv = QuatVector([
             Quaternion(1, 0, 0, 0),
             Quaternion(0, 1, 0, 0),
@@ -39,7 +39,7 @@ class TestMeanRotation(QuatTestCase):
     def test_valid_unit_output(self):
         from quat.core import Quaternion
         from quat.collections import QuatVector
-        from quat.mean import mean_rotation
+        from quat.stats import mean_rotation
         rng = np.random.default_rng(42)
         data = rng.normal(size=(50, 4))
         data = data / np.linalg.norm(data, axis=-1, keepdims=True)
@@ -51,7 +51,7 @@ class TestMeanRotation(QuatTestCase):
 class TestKarcherMean(QuatTestCase):
     def test_converges_to_unit(self):
         from quat.collections import QuatVector
-        from quat.mean import karcher_mean
+        from quat.stats import karcher_mean
         rng = np.random.default_rng(42)
         data = rng.normal(size=(100, 4))
         qv = QuatVector(data / np.linalg.norm(data, axis=-1, keepdims=True))

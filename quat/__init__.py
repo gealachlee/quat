@@ -73,7 +73,7 @@ from quat.serialization import (
     to_json, from_json, to_bytes, from_bytes,
     to_scipy_rotation, from_scipy_rotation,
 )
-from quat.optimized import (
+from quat.algebra import (
     hamilton_einsum, quat_matmul,
     conjugate_batch, norm_squared_batch, normalize_batch,
 )
@@ -86,14 +86,13 @@ from quat.random import (
     random_quat_matrix, random_quat_tensor,
 )
 from quat.interpolate import slerp, slerp_vector, squad
+from quat.interpolate import angular_velocity, integrate_angular_velocity, rotate_frame
 from quat.signal import (
     qfft, iqfft, qfft2, iqfft2,
     qconv, qconv2,
     lowpass, highpass, bandpass, bandstop,
 )
-from quat.distance import rotation, rotor
-from quat.kinematics import angular_velocity, integrate_angular_velocity, rotate_frame
-from quat.mean import mean_rotation, karcher_mean
+from quat.stats import rotation, rotor, mean_rotation, karcher_mean
 from quat.stats import quaternion_mean, quaternion_cov, quaternion_pca
 
 __all__ = [
