@@ -115,102 +115,151 @@ print(_I * _J * _K)     # -1 (Hamilton's fundamental identity)
 
 ## Multiplication
 
-**quat** defines four quaternion types — `Quaternion`, `QuatVector`, `QuatMatrix`,
-`QuatTensor` — each with different multiplication semantics.
+All `*` operations in quat use the **Hamilton product** (not component-wise
+multiplication).  The only exception is scalar multiplication (`* s`), which
+multiplies each of the 4 components by a real/complex number.
 
-### Type compatibility matrix
+### Multiplication is always Hamilton — never component-wise
 
-`×` denotes Hamilton product; `⊙` denotes element-wise Hamilton; `@` denotes
-quaternion matrix multiplication; `mode-k` denotes the tensor mode-`k` product.
+```
+q1 * q2  →  Hamilton product  q₁·q₂
+```
 
-| left \ right | `Quaternion` | `QuatVector` | `QuatMatrix` | `QuatTensor` | `Real / Complex` |
-|---|---|---|---|---|---|
-| **`Quaternion`** | `×` Hamilton | `×` (via `__rmul__`) | `×` (via `__rmul__`) | `×` (via `__rmul__`) | `×` scalar |
-| **`QuatVector`** | `⊙` element-wise | `⊙` element-wise | — | — | `×` scalar |
-| **`QuatMatrix`** | `⊙` element-wise | `@` matrix-vector | `@` matrix-matrix | — | `×` scalar |
-| **`QuatTensor`** | `⊙` element-wise | — | `mode-k` product | — | `×` scalar |
-| **`Real / Complex`** | `×` scalar | `×` scalar | `×` scalar | `×` scalar | — |
+There is **no** `*` operator that multiplies real parts together and imaginary
+parts separately.  Every non-scalar `*` invokes the full quaternion Hamilton
+product in some form.
 
-> `—` means no `*` operator is defined (raises `TypeError`).  Use explicit
-> methods (`.inner()`, `.mode_n_product()`) instead.
+### Two families
 
-### Semantics in detail
-
-| expression | meaning | result type |
+| family | forms | what it does |
 |---|---|---|
-| `q1 * q2` | Hamilton product `q₁·q₂` | `Quaternion` |
-| `q * 3.0` | component-wise scalar multiply | `Quaternion` |
-| `3.0 * q` | scalar multiply (via `__rmul__`) | `Quaternion` |
-| `v1 * v2` | element-wise Hamilton: `v₁[i] · v₂[i]` for all `i` | `QuatVector` |
-| `v * q` | right-multiply every element: `v[i] · q` | `QuatVector` |
-| `q * v` | left-multiply every element (via `v.__rmul__`): `q · v[i]` | `QuatVector` |
-| `v * s` | scalar-multiply every element | `QuatVector` |
-| `A * B` | quaternion matrix multiplication (shape `m×n` · `n×p` → `m×p`) | `QuatMatrix` |
-| `A * v` | quaternion matrix-vector multiply (shape `m×n` · `n` → `m`) | `QuatVector` |
-| `A * q` | right-multiply every element: `A[i,j] · q` | `QuatMatrix` |
-| `q * A` | left-multiply every element (via `A.__rmul__`): `q · A[i,j]` | `QuatMatrix` |
-| `A * s` | scalar-multiply every element | `QuatMatrix` |
-| `T * q` | right-multiply every element: `T[i,j,k] · q` | `QuatTensor` |
-| `T * s` | scalar-multiply every element | `QuatTensor` |
-| `T.mode_k_product(A)` | mode-`k` product: tensor `·ₖ` matrix | `QuatTensor` |
-| `v1.inner(v2)` | quaternion inner product `∑ v₁[i]⁺ · v₂[i]` | `Quaternion` |
+| **Scalar multiply** | `q * s`, `v * s`, `A * s`, `T * s` | Each component × scalar (real × real, i × i, j × j, k × k) |
+| **Hamilton multiply** | everything else below | Full quaternion product |
+
+### Four semantic patterns
+
+#### ① `Quat × Quat` — Hamilton product (one result)
+```
+q1 * q2 → Quaternion
+```
+Classic quaternion multiplication `(a+bi+cj+dk)(e+fi+gj+hk)`.  Non-commutative.
+
+#### ② `Collection × Quaternion` — element-wise Hamilton
+```
+v * q   →  v[i]·q          (right-multiply each element)
+q * v   →  q·v[i]          (left-multiply each element, via __rmul__)
+A * q   →  A[i,j]·q        (right-multiply each element)
+q * A   →  q·A[i,j]        (left-multiply each element)
+T * q   →  T[i,j,k]·q      (right-multiply each element)
+```
+Every slot in the collection is multiplied individually by the same quaternion.
+
+#### ③ `Collection × Collection (same shape)` — element-wise Hamilton
+```
+v1 * v2  →  v1[i]·v2[i]    — QuatVector of same length
+```
+Each pair `(v1[i], v2[i])` is multiplied via Hamilton product independently.
+Requires matching shapes.
+
+#### ④ `Matrix × Matrix / Vector` — quaternion matrix multiplication
+```
+A * B  →  (A·B)[i,j] = Σₖ A[i,k] · B[k,j]  — QuatMatrix (m×p)
+A * v  →  y[i]       = Σⱼ A[i,j] · v[j]     — QuatVector (m)
+```
+Standard matrix multiplication, but with Hamilton product replacing scalar
+multiplication.  **Not** element-wise — equivalent to `C[i,j] = Σₖ A[i,k]·B[k,j]`.
+
+### Cross-type reference
+
+| expression | semantics | result |
+|---|---|---|
+| `q1 * q2` | Hamilton product | `Quaternion` |
+| `q * 2.5` | component-wise scalar × | `Quaternion` |
+| `3.0 * q` | scalar × (via `__rmul__`) | `Quaternion` |
+| `v1 * v2` | element-wise Hamilton | `QuatVector` |
+| `v * q` | element-wise Hamilton, right-multiply | `QuatVector` |
+| `q * v` | element-wise Hamilton, left-multiply | `QuatVector` |
+| `v * s` | scalar × each element (component-wise) | `QuatVector` |
+| `A * B` | **matrix** multiplication (Σ Hamilton) | `QuatMatrix` |
+| `A * v` | **matrix-vector** multiplication (Σ Hamilton) | `QuatVector` |
+| `A * q` | element-wise Hamilton, right-multiply | `QuatMatrix` |
+| `q * A` | element-wise Hamilton, left-multiply | `QuatMatrix` |
+| `A * s` | scalar × each element (component-wise) | `QuatMatrix` |
+| `T * q` | element-wise Hamilton, right-multiply | `QuatTensor` |
+| `T * s` | scalar × each element (component-wise) | `QuatTensor` |
+| `T.mode_k_product(A)` | tensor mode-`k` product (`A·ₖ T`) | `QuatTensor` |
+| `v1.inner(v2)` | inner product `∑ v[i]⁻ · v[i]` | `Quaternion` |
+| `q1.component_wise_mul(q2)` | component-wise `a·e, b·f, c·g, d·h` (no cross-terms) | `Quaternion` |
+| `v1.component_wise_mul(v2)` | component-wise, same shape required | `QuatVector` |
+| `A.component_wise_mul(B)` | component-wise, same shape required | `QuatMatrix` |
+| `component_wise_mul(p, q)` | raw ndarray batch, shape `(..., 4)` | `ndarray` |
 
 ### Examples
 
 ```python
-# ---- Scalar × Scalar (Hamilton product) ----------------------------
+# ---- ① Scalar × Scalar (Hamilton product) --------------------------
 p = Quaternion(2, 3, -1, 4)
 q = Quaternion(1, -2, 0, 5)
 p * q               # Hamilton product
 p.commutator(q)     # [p, q] = pq − qp
 
-# ---- Vector × Vector (element-wise Hamilton) -----------------------
+# ---- ② Element-wise Hamilton (collection × quaternion) -------------
+v = QuatVector([_I, _J, _K])
+A = QuatMatrix([[_I, _J], [_K, _R]])
+q = Quaternion(0, 1, 0, 0)
+
+v * q               # QuatVector([-1, -k,  j])   — v[i]·q  right-multiply
+q * v               # QuatVector([-1,  k, -j])   — q·v[i]  left-multiply
+A * q               # each A[i,j]·q
+
+# ---- ③ Element-wise Hamilton (vector × vector) ---------------------
 v1 = QuatVector([_I, _J, _K])
 v2 = QuatVector([_J, _K, _I])
-v1 * v2             # QuatVector([ k,  i,  j])  — element-wise
+v1 * v2             # QuatVector([ k,  i,  j])   — element-wise Hamilton
 
-# ---- Vector × Quaternion (element-wise, right-multiply) ------------
-v = QuatVector([_I, _J, _K])
-q = Quaternion(0, 1, 0, 0)
-v * q               # QuatVector([-1, -k,  j])  — v[i] · q
-
-# ---- Matrix × Matrix (quaternion matrix multiply) ------------------
+# ---- ④ Matrix multiplication (NOT element-wise) --------------------
 A = QuatMatrix([[_I, _J], [_K, _R]])
 B = QuatMatrix([[_R, _K], [_J, _I]])
-A * B               # shape (2, 2)  — standard quaternion matrix product
+A * B               # shape (2,2)  — C[i,j] = Σ_k A[i,k]·B[k,j]
 
-# ---- Matrix × Vector (matrix-vector multiply) ----------------------
-A = QuatMatrix(2, 3)            # 2×3 quaternion matrix
-x = QuatVector(3)               # length-3 vector
-A * x               # length-2 vector  — y[i] = Σ_j A[i,j] · x[j]
-
-# ---- Matrix × Quaternion (element-wise, right-multiply) ------------
-A * q               # A[i,j] · q  for all i, j
-q * A               # q · A[i,j]  for all i, j  (via __rmul__)
-
-# ---- Tensor × Quaternion (element-wise, right-multiply) ------------
-T = QuatTensor(2, 3, 4)
-T * q               # T[i,j,k] · q  for all i, j, k
+# ---- ④ Matrix-vector multiplication --------------------------------
+A = QuatMatrix(2, 3)
+x = QuatVector(3)
+A * x               # length-2 vector  — y[i] = Σ_j A[i,j]·x[j]
 
 # ---- Tensor mode-k product -----------------------------------------
-T.mode_1_product(A)  # A @ unfold_1(T), then fold back
-T.mode_2_product(A)  # unfold along mode 2
-T.mode_3_product(A)  # unfold along mode 3
+T = QuatTensor(2, 3, 4)
+T.mode_1_product(A)  # unfold(1) → A * unfolded → fold back
+T.mode_2_product(A)
+T.mode_3_product(A)
 
 # ---- Inner products -------------------------------------------------
 v1.inner(v2)        # Quaternion — sum of v₁[i]⁻ · v₂[i]
 T.inner(T)          # Quaternion — Frobenius norm squared
+
+# ---- Component-wise multiply (no cross-terms) -----------------------
+q1 = Quaternion(1, 2, 3, 4)
+q2 = Quaternion(5, 6, 7, 8)
+q1.component_wise_mul(q2)  # Quaternion(5, 12, 21, 32)  — a·e, b·f, c·g, d·h
+
+v1 = QuatVector([_I, _J, _K])
+v2 = QuatVector([_J, _K, _I])
+v1.component_wise_mul(v2)  # QuatVector([0, 0, 0])  — no cross-terms → all zero
 ```
 
-### Notes
+### Key points
 
-- **Every `QuatVector` / `QuatMatrix` / `QuatTensor`** supports scalar
-  multiplication (`*`) and right-multiplication by a `Quaternion` via `__mul__`,
-  and left-multiplication by a `Quaternion` via `__rmul__` (inherited from
-  `_BaseCollection`).
-- **Addition** (`+`, `−`) is always element-wise and requires matching types
-  and shapes.
-- **QuatTensor `*` QuatTensor** is not supported.  Use mode-`k` products or
+- **All non-scalar `*` is Hamilton.**  There is no `*` operator for
+  component-wise multiply (`a·e, b·f, c·g, d·h`).  Use `.component_wise_mul()`
+  instead.
+- **`A * B` is matrix multiplication**, not element-wise.  The matrix
+  dimensions must be compatible (`m×n` · `n×p`).
+- **`A * v` is matrix-vector**, not element-wise.
+- **`v1 * v2` is element-wise** — each `v1[i]` is Hamilton-multiplied by
+  `v2[i]` independently.
+- **Left vs right matters.**  `v * q` (right-multiply) ≠ `q * v` (left-multiply)
+  because Hamilton product is non-commutative.
+- **`QuatTensor * QuatTensor` is not supported.**  Use mode-`k` products or
   `.inner()` instead.
 
 ## API Reference
@@ -222,7 +271,7 @@ T.inner(T)          # Quaternion — Frobenius norm squared
 | **constructors** | `zero()`, `one_q()`, `from_axis_angle()`, `from_euler()`, `from_complex_matrix()`, `from_real_matrix_left()` |
 | **components** | `.w`, `.r`, `.i`, `.j`, `.k`, `.real`, `.imag`, `.components`, `.data` |
 | **arithmetic** | `+`, `-`, `*`, `/`, `-q` (Hamilton product via `*`; `@` not overridden) |
-| **algebra** | `.conjugate()`, `.norm()`, `.normalize()`, `.normalized`, `.inverse()`, `.exp()`, `.log()`, `.pow(t)`, `.re_inner(q)`, `.commutator(q)`, `.minimal()` |
+| **algebra** | `.conjugate()`, `.norm()`, `.normalize()`, `.normalized`, `.inverse()`, `.exp()`, `.log()`, `.pow(t)`, `.re_inner(q)`, `.commutator(q)`, `.minimal()`, `.component_wise_mul(q)` |
 | **rotation** | `.rotate_vector(v)`, `.to_axis_angle()`, `.to_euler(seq='zyx')`, `.angle`, `.axis` |
 | **validation** | `.isnan()`, `.isinf()`, `.isfinite()`, `.isclose(q)` |
 | **serialization** | `.to_json()`, `.from_json(s)`, `.to_bytes()`, `.from_bytes(b)` |
@@ -237,7 +286,7 @@ T.inner(T)          # Quaternion — Frobenius norm squared
 | shape | `(n,)` | `(m, n)` | `(p, q, r)` |
 | create | `zeros`, `ones` | `zeros`, `eye` | `zeros` |
 | access | `.data`, `.real/.i/.j/.k` | `.data`, `.real/.i/.j/.k`, `.row(i)`, `.col(j)` | `.data`, `.real/.i/.j/.k` |
-| ops | `.inner(v)`, `.norm()` | `.norm()`, `.T`, `.H`, `.conjugate()` | `.inner(T)`, `.unfold(mode)`, `.mode_n_product(A)` |
+| ops | `.inner(v)`, `.norm()`, `.component_wise_mul(v)` | `.norm()`, `.T`, `.H`, `.conjugate()`, `.component_wise_mul(A)` | `.inner(T)`, `.unfold(mode)`, `.mode_n_product(A)`, `.component_wise_mul(T)` |
 
 ### Module overview
 
@@ -249,7 +298,7 @@ T.inner(T)          # Quaternion — Frobenius norm squared
 | `quat.serialization` | `to_json`, `from_json`, `to_bytes`, `from_bytes`, `to_scipy_rotation`, `from_scipy_rotation` |
 | `quat.signal` | `qfft`, `iqfft`, `qfft2`, `iqfft2`, `qconv`, `qconv2`, `lowpass`, `highpass`, `bandpass`, `bandstop` |
 | `quat.stats` | `rotation.intrinsic`, `rotation.chordal`, `rotor.intrinsic`, `rotor.chordal`, `mean_rotation`, `approximate_karcher_mean`, `quaternion_mean`, `quaternion_cov`, `quaternion_pca` |
-| `quat.algebra` | `hamilton_einsum`, `quat_matmul`, `conjugate_batch`, `norm_squared_batch`, `normalize_batch` |
+| `quat.algebra` | `hamilton_einsum`, `quat_matmul`, `component_wise_mul`, `conjugate_batch`, `norm_squared_batch`, `normalize_batch` |
 
 ### Performance
 

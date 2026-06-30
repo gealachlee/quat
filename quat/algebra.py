@@ -171,6 +171,32 @@ def quat_matmul(A_data: npt.NDArray, B_data: npt.NDArray) -> npt.NDArray:
     return np.einsum('rab,mia,inb->mnr', _HAMILTON_TENSOR, A_data, B_data, optimize=True)
 
 
+def component_wise_mul(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
+    """Component-wise multiplication of quaternion arrays.
+
+    ``(a0 + a1i + a2j + a3k) ⊙ (b0 + b1i + b2j + b3k)
+      = (a0*b0) + (a1*b1)i + (a2*b2)j + (a3*b3)k``
+
+    No Hamilton cross-terms — simply multiplies corresponding components.
+
+    Args:
+        p: ndarray of shape ``(..., 4)``.
+        q: ndarray of shape ``(..., 4)``.
+
+    Returns:
+        ndarray of shape ``(..., 4)``.
+
+    Example:
+        >>> from quat.algebra import component_wise_mul
+        >>> import numpy as np
+        >>> p = np.array([1., 2., 3., 4.])
+        >>> q = np.array([5., 6., 7., 8.])
+        >>> component_wise_mul(p, q)
+        array([ 5., 12., 21., 32.])
+    """
+    return p * q
+
+
 def conjugate_batch(data: npt.NDArray) -> npt.NDArray:
     """Element-wise quaternion conjugate for ``(..., 4)`` data."""
     return data * _CONJ

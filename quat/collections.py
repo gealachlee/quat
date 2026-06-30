@@ -141,6 +141,17 @@ class _BaseCollection:
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         return _dispatch_collection_ufunc(ufunc, method, *inputs, **kwargs)
 
+    def component_wise_mul(self, other: Self) -> Self:
+        """Component-wise multiplication (no Hamilton cross-terms).
+
+        ``(a + bi + cj + dk) ⊙ (e + fi + gj + hk)
+          = (a*e) + (b*f)i + (c*g)j + (d*h)k``
+
+        Each component is multiplied independently — unlike ``*`` which
+        uses the full Hamilton product.
+        """
+        return type(self)(self._data * other._data)
+
     # -- component accessors --------------------------------------------------
 
     @property

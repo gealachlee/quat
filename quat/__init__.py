@@ -68,7 +68,7 @@ from quat.serialization import (
     to_scipy_rotation, from_scipy_rotation,
 )
 from quat.algebra import (
-    hamilton_einsum, quat_matmul,
+    hamilton_einsum, quat_matmul, component_wise_mul,
     conjugate_batch, norm_squared_batch, normalize_batch,
 )
 from quat.linalg import (
@@ -97,7 +97,7 @@ __all__ = [
     'isnan', 'isinf', 'isfinite', 'isclose',
     'to_json', 'from_json', 'to_bytes', 'from_bytes',
     'to_scipy_rotation', 'from_scipy_rotation',
-    'hamilton_einsum', 'quat_matmul',
+    'hamilton_einsum', 'quat_matmul', 'component_wise_mul',
     'conjugate_batch', 'norm_squared_batch', 'normalize_batch',
     'svd', 'svd_values', 'rank', 'condition_number', 'pseudo_inverse',
     'trace', 'det', 'norm', 'solve',

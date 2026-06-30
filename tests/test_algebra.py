@@ -71,3 +71,49 @@ class TestConstants(QuatTestCase):
             [4., -3.,  2.,  1.]
         ])
         self.assertTrue(np.allclose(R, expected))
+
+
+class TestComponentWiseMul(QuatTestCase):
+    def test_standalone_ndarray(self):
+        from quat.algebra import component_wise_mul
+        p = np.array([1., 2., 3., 4.])
+        q = np.array([5., 6., 7., 8.])
+        r = component_wise_mul(p, q)
+        self.assertTrue(np.allclose(r, [5., 12., 21., 32.]))
+
+    def test_standalone_batch(self):
+        from quat.algebra import component_wise_mul
+        p = np.random.randn(10, 4)
+        q = np.random.randn(10, 4)
+        r = component_wise_mul(p, q)
+        self.assertEqual(r.shape, (10, 4))
+        self.assertTrue(np.allclose(r, p * q))
+
+    def test_quaternion_method(self):
+        from quat import Quaternion
+        q1 = Quaternion(1, 2, 3, 4)
+        q2 = Quaternion(5, 6, 7, 8)
+        r = q1.component_wise_mul(q2)
+        self.assertEqual(r, Quaternion(5, 12, 21, 32))
+
+    def test_vector_method(self):
+        from quat import QuatVector, _I, _J, _K
+        v1 = QuatVector([_I, _J, _K])
+        v2 = QuatVector([_J, _K, _I])
+        r = v1.component_wise_mul(v2)
+        self.assertTrue(np.allclose(r.to_array(), np.zeros((3, 4))))
+
+    def test_matrix_method(self):
+        from quat import QuatMatrix, _I, _J, _K, _R
+        A = QuatMatrix([[_I, _J], [_K, _R]])
+        B = QuatMatrix([[_R, _K], [_J, _I]])
+        r = A.component_wise_mul(B)
+        self.assertTrue(np.allclose(r.to_array(), np.zeros((2, 2, 4))))
+
+    def test_tensor_method(self):
+        from quat import QuatTensor, _I, _J
+        T = QuatTensor([[[_I, _J]], [[_J, _I]]])
+        S = QuatTensor([[[_J, _I]], [[_I, _J]]])
+        r = T.component_wise_mul(S)
+        self.assertEqual(r.shape, (2, 1, 2))
+        self.assertTrue(np.allclose(r.to_array(), np.zeros((2, 1, 2, 4))))
