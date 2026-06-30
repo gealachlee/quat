@@ -173,6 +173,16 @@ class Quaternion:
         s = 1. / v_norm if v_norm > 0 else 0.
         return np.array([b * s, c * s, d * s]), float(angle)
 
+    @property
+    def angle(self) -> float:
+        """Rotation angle extracted from unit quaternion (radians, range [0,π])."""
+        return self.to_axis_angle()[1]
+
+    @property
+    def axis(self) -> np.ndarray:
+        """Unit rotation axis extracted from unit quaternion (3-vector)."""
+        return self.to_axis_angle()[0]
+
     # -- Euler angles ---------------------------------------------------------
     @classmethod
     def from_euler(cls, angles, seq: str = 'zyx', intrinsic: bool = True) -> Quaternion:
@@ -250,6 +260,10 @@ class Quaternion:
     @property
     def k(self) -> float:
         return self._data[3].item()
+
+    @property
+    def w(self) -> float:
+        return self._data[0].item()
 
     @property
     def real(self) -> float:
@@ -411,6 +425,11 @@ class Quaternion:
         if n == 0.0:
             raise ZeroDivisionError("Cannot normalize zero quaternion")
         return Quaternion(self._data / n)
+
+    @property
+    def normalized(self) -> Quaternion:
+        """Unit-norm copy (property alias for ``normalize()``)."""
+        return self.normalize()
 
     def inverse(self) -> Quaternion:
         """
@@ -658,6 +677,31 @@ class Quaternion:
 
     def __bool__(self) -> bool:
         return not np.allclose(self._data, 0.)
+
+    def minimal(self) -> Quaternion:
+        """Return canonical representation with scalar part w >= 0.
+
+        For unit quaternions, *q* and *-q* represent the same rotation.
+        This method picks the representative with positive scalar part,
+        resolving the sign ambiguity.
+
+        Example:
+            >>> q = Quaternion(-1, 0, 0, 0)
+            >>> q.minimal().w
+            1.0
+        """
+        w = self._data[0]
+        if w > 0:
+            return Quaternion(self._data)
+        if w < 0:
+            return Quaternion(-self._data)
+        # w == 0: pick first non-zero imaginary component positive
+        for i in range(1, 4):
+            if abs(self._data[i]) > 1e-15:
+                if self._data[i] < 0:
+                    return Quaternion(-self._data)
+                break
+        return Quaternion(self._data)
 
     def __abs__(self) -> float:
         return self.norm()

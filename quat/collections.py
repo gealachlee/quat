@@ -136,12 +136,16 @@ class QuatVector:
     def __neg__(self) -> QuatVector:
         return QuatVector(-self._data)
 
-    def __mul__(self, scalar: Real | Complex | Quaternion) -> QuatVector:
-        if isinstance(scalar, (Real, Complex)):
-            r = float(scalar.real if isinstance(scalar, Complex) else scalar)
+    def __mul__(self, other: QuatVector | Real | Complex | Quaternion) -> QuatVector:
+        if isinstance(other, QuatVector):
+            if len(self) != len(other):
+                raise ValueError(f"Size mismatch: {len(self)} vs {len(other)}")
+            return QuatVector(_hamilton(self._data, other._data))
+        if isinstance(other, (Real, Complex)):
+            r = float(other.real if isinstance(other, Complex) else other)
             return QuatVector(self._data * r)
-        if isinstance(scalar, Quaternion):
-            return QuatVector(_hamilton(self._data, scalar._data))
+        if isinstance(other, Quaternion):
+            return QuatVector(_hamilton(self._data, other._data))
         return NotImplemented
 
     def __rmul__(self, scalar: Real | Complex | Quaternion) -> QuatVector:
