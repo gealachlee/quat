@@ -32,7 +32,7 @@ Optimized (from quat.optimized):
   norm_squared_batch, normalize_batch
 
 Linear algebra (from quat.linalg):
-  svd, rank, condition_number, pseudo_inverse,
+  svd, svd_values, rank, condition_number, pseudo_inverse,
   trace, det, norm, solve
 
 Random (from quat.random):
@@ -46,6 +46,18 @@ Signal processing (from quat.signal):
   qfft, iqfft, qfft2, iqfft2,
   qconv, qconv2,
   lowpass, highpass, bandpass, bandstop
+
+Distance (from quat.distance):
+  rotation.intrinsic, rotation.chordal, rotor.intrinsic, rotor.chordal
+
+Kinematics (from quat.kinematics):
+  angular_velocity, integrate_angular_velocity, rotate_frame
+
+Mean (from quat.mean):
+  mean_rotation, karcher_mean
+
+Statistics (from quat.stats):
+  quaternion_mean, quaternion_cov, quaternion_pca
 """
 
 __version__ = "0.2.0"
@@ -66,7 +78,7 @@ from quat.optimized import (
     conjugate_batch, norm_squared_batch, normalize_batch,
 )
 from quat.linalg import (
-    svd, rank, condition_number, pseudo_inverse,
+    svd, svd_values, rank, condition_number, pseudo_inverse,
     trace, det, norm, solve,
 )
 from quat.random import (
@@ -79,6 +91,10 @@ from quat.signal import (
     qconv, qconv2,
     lowpass, highpass, bandpass, bandstop,
 )
+from quat.distance import rotation, rotor
+from quat.kinematics import angular_velocity, integrate_angular_velocity, rotate_frame
+from quat.mean import mean_rotation, karcher_mean
+from quat.stats import quaternion_mean, quaternion_cov, quaternion_pca
 
 __all__ = [
     'Quaternion', 'QuatVector', 'QuatMatrix', 'QuatTensor',
@@ -90,7 +106,7 @@ __all__ = [
     'to_scipy_rotation', 'from_scipy_rotation',
     'hamilton_einsum', 'quat_matmul',
     'conjugate_batch', 'norm_squared_batch', 'normalize_batch',
-    'svd', 'rank', 'condition_number', 'pseudo_inverse',
+    'svd', 'svd_values', 'rank', 'condition_number', 'pseudo_inverse',
     'trace', 'det', 'norm', 'solve',
     'random_quat', 'random_unit_quat', 'random_quat_vector',
     'random_quat_matrix', 'random_quat_tensor',
@@ -98,5 +114,9 @@ __all__ = [
     'qfft', 'iqfft', 'qfft2', 'iqfft2',
     'qconv', 'qconv2',
     'lowpass', 'highpass', 'bandpass', 'bandstop',
+    'rotation', 'rotor',
+    'angular_velocity', 'integrate_angular_velocity', 'rotate_frame',
+    'mean_rotation', 'karcher_mean',
+    'quaternion_mean', 'quaternion_cov', 'quaternion_pca',
     '__version__',
 ]
