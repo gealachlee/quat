@@ -31,7 +31,8 @@ full toolbox:
 | **Scalar quaternions** | Full algebra — `+`, `*`, `/`, `exp`, `log`, `pow`, Hamilton product |
 | **Collections** | `QuatVector` (1D), `QuatMatrix` (2D), `QuatTensor` (3D) — broadcast-aware |
 | **Linear algebra** | SVD, rank, condition number, pseudo-inverse, determinant — on quaternion matrices |
-| **Interpolation** | SLERP (shortest arc on S³), squad cubic spline, batch SLERP |
+| **Interpolation** | SLERP (shortest arc on S³), squad cubic spline, batch SLERP, angular velocity estimation |
+| **Distance & statistics** | 4 geodesic/chordal distance metrics, quaternion vector mean, Karcher mean, PCA |
 | **Signal processing** | 1D/2D QFFT, quaternion convolution, FIR filter design |
 | **Random generation** | Reproducible generators for all four types |
 | **Serialization** | JSON + compact binary roundtrip for all types; SciPy `Rotation` interop |
@@ -119,10 +120,10 @@ print(_I * _J * _K)     # -1 (Hamilton's fundamental identity)
 | category | methods |
 |---|---|
 | **constructors** | `zero()`, `one_q()`, `from_axis_angle()`, `from_euler()`, `from_complex_matrix()`, `from_real_matrix_left()` |
-| **components** | `.r`, `.i`, `.j`, `.k`, `.real`, `.imag`, `.components`, `.data` |
+| **components** | `.w`, `.r`, `.i`, `.j`, `.k`, `.real`, `.imag`, `.components`, `.data` |
 | **arithmetic** | `+`, `-`, `*`, `/`, `-q`, `@` |
-| **algebra** | `.conjugate()`, `.norm()`, `.normalize()`, `.inverse()`, `.exp()`, `.log()`, `.pow(t)`, `.re_inner(q)`, `.commutator(q)` |
-| **rotation** | `.rotate_vector(v)`, `.to_axis_angle()`, `.to_euler(seq='zyx')` |
+| **algebra** | `.conjugate()`, `.norm()`, `.normalize()`, `.normalized`, `.inverse()`, `.exp()`, `.log()`, `.pow(t)`, `.re_inner(q)`, `.commutator(q)`, `.minimal()` |
+| **rotation** | `.rotate_vector(v)`, `.to_axis_angle()`, `.to_euler(seq='zyx')`, `.angle`, `.axis` |
 | **validation** | `.isnan()`, `.isinf()`, `.isfinite()`, `.isclose(q)` |
 | **serialization** | `.to_json()`, `.from_json(s)`, `.to_bytes()`, `.from_bytes(b)` |
 | **matrices** | `.to_complex_matrix()`, `.to_real_matrix_left()`, `.to_real_matrix_right()` |
@@ -143,15 +144,12 @@ print(_I * _J * _K)     # -1 (Hamilton's fundamental identity)
 | module | exports |
 |---|---|
 | `quat.random` | `random_quat`, `random_unit_quat`, `random_quat_vector`, `random_quat_matrix`, `random_quat_tensor` |
-| `quat.interpolate` | `slerp`, `slerp_vector`, `squad` |
-| `quat.linalg` | `svd`, `rank`, `condition_number`, `pseudo_inverse`, `trace`, `det`, `norm`, `solve` |
+| `quat.interpolate` | `slerp`, `slerp_vector`, `squad`, `angular_velocity`, `integrate_angular_velocity`, `rotate_frame` |
+| `quat.linalg` | `svd`, `svd_values`, `rank`, `condition_number`, `pseudo_inverse`, `trace`, `det`, `norm`, `solve` |
 | `quat.serialization` | `to_json`, `from_json`, `to_bytes`, `from_bytes`, `to_scipy_rotation`, `from_scipy_rotation` |
 | `quat.signal` | `qfft`, `iqfft`, `qfft2`, `iqfft2`, `qconv`, `qconv2`, `lowpass`, `highpass`, `bandpass`, `bandstop` |
-| `quat.distance` | `rotation.intrinsic`, `rotation.chordal`, `rotor.intrinsic`, `rotor.chordal` — geodesic and chordal distance metrics on SO(3) and S³, with batch variants |
-| `quat.kinematics` | `angular_velocity`, `integrate_angular_velocity`, `rotate_frame` — quaternion trajectory estimation and frame rotation |
-| `quat.mean` | `mean_rotation`, `karcher_mean` — SVD-based closed-form and Riemannian (Karcher) iterative quaternion averaging |
-| `quat.stats` | `quaternion_mean`, `quaternion_cov`, `quaternion_pca` — quaternion component-space statistics and dimensionality reduction |
-| `quat.optimized` | `hamilton_einsum`, `quat_matmul`, `conjugate_batch`, `norm_squared_batch`, `normalize_batch` |
+| `quat.stats` | `rotation.intrinsic`, `rotation.chordal`, `rotor.intrinsic`, `rotor.chordal`, `mean_rotation`, `approximate_karcher_mean`, `quaternion_mean`, `quaternion_cov`, `quaternion_pca` |
+| `quat.algebra` | `hamilton_einsum`, `quat_matmul`, `conjugate_batch`, `norm_squared_batch`, `normalize_batch` |
 
 ### Performance
 
@@ -162,7 +160,7 @@ fastest strategy based on data size:
 |---|---|---|
 | ≤ 500 elements | `_hamilton_component` | direct float arithmetic |
 | 500 – 5000 | `_hamilton_einsum_noopt` | einsum without contraction-path optimisation |
-| > 5000 | `_hamilton_einsum` | einsum with full optimisation |
+| > 5000 | `_hamilton_einsum` | einsum with cached contraction-path optimisation |
 
 **SVD fast-path:** `rank()`, `condition_number()`, and `norm(A, 2)` compute
 only singular values via the complex (2×2) representation — **~20× faster**
