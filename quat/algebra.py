@@ -4,6 +4,7 @@
 
 """Low-level quaternion algebra — constants, Hamilton product, real-matrix tensor."""
 from __future__ import annotations
+from functools import lru_cache
 import numpy as np
 import numpy.typing as npt
 
@@ -85,6 +86,15 @@ def _hamilton_einsum_noopt(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
 
 
 def _hamilton_einsum(p: npt.NDArray, q: npt.NDArray) -> npt.NDArray:
-    """Einsum with full contraction-path optimisation — best throughput for large
-    batches where the optimisation cost is amortised."""
-    return np.einsum('rck,...c,...k->...r', _HAMILTON_TENSOR, p, q, optimize=True)
+    """Einsum with cached contraction-path optimisation — best throughput for
+    large batches where the optimisation cost is amortised."""
+    path = _cached_einsum_path(p.shape, q.shape)
+    return np.einsum('rck,...c,...k->...r', _HAMILTON_TENSOR, p, q, optimize=path)
+
+@lru_cache(maxsize=64)
+def _cached_einsum_path(shape_p, shape_q):
+    """Cache einsum_path by shape signature to avoid re-computation."""
+    subscripts = 'rck,...c,...k->...r'
+    p = np.empty(shape_p)
+    q = np.empty(shape_q)
+    return np.einsum_path(subscripts, _HAMILTON_TENSOR, p, q, optimize=True)[0]
